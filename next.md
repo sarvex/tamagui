@@ -1,6 +1,9 @@
 rc.1
 
+  - sheet fix
   - next load css on subsequent pages
+  - remove elevation from core
+  - site looks to be loading lucide icons early
 
 1.0
 

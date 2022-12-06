@@ -2,6 +2,7 @@ import { useComposedRefs } from '@tamagui/compose-refs'
 import {
   GetProps,
   Slot,
+  Stack,
   TamaguiElement,
   Theme,
   getAnimationDriver,
@@ -30,11 +31,21 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
 } from 'react'
-import { GestureResponderEvent, PanResponder, PanResponderGestureState, View } from 'react-native'
+import {
+  GestureResponderEvent,
+  PanResponder,
+  PanResponderGestureState,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native'
+import { SheetProvider as RNActionSheetProvider } from 'react-native-actions-sheet'
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet'
 
 import { SHEET_HANDLE_NAME, SHEET_NAME } from './SHEET_HANDLE_NAME'
 import { SheetProvider, useSheetContext } from './SheetContext'
@@ -159,14 +170,15 @@ export const SheetFrameFrame = styled(YStack, {
   width: '100%',
   maxHeight: '100%',
   overflow: 'hidden',
-  pointerEvents: 'auto',
+  // pointerEvents: 'auto',
 })
 
 export const SheetFrame = SheetFrameFrame.extractable(
   forwardRef(({ __scopeSheet, ...props }: SheetScopedProps<YStackProps>, forwardedRef) => {
     const context = useSheetContext(SHEET_NAME, __scopeSheet)
     const composedContentRef = useComposedRefs(forwardedRef, context.contentRef)
-    return <SheetFrameFrame ref={composedContentRef} {...props} />
+    const dimensions = useWindowDimensions()
+    return <SheetFrameFrame minHeight={dimensions.height} ref={composedContentRef} {...props} />
   })
 )
 
@@ -214,6 +226,7 @@ const SheetImplementation = themeable(
   forwardRef<View, SheetProps>(function SheetImplementation(props, ref) {
     const parentSheet = useContext(ParentSheetContext)
     const { isHidden, controller } = useSheetContoller()
+    const id = useId()
 
     const {
       __scopeSheet,
@@ -274,8 +287,6 @@ const SheetImplementation = themeable(
       strategy: 'most-recent-wins',
     })
 
-    const [frameSize, setFrameSize] = useState<number>(0)
-
     const snapPoints = useMemo(
       () => (dismissOnSnapToBottom ? [...snapPointsProp, 0] : snapPointsProp),
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -317,14 +328,6 @@ const SheetImplementation = themeable(
       scrollBridge.paneY = value
     })
 
-    const [isResizing, setIsResizing] = useState(true)
-    useIsomorphicLayoutEffect(() => {
-      if (!isResizing) {
-        setIsResizing(true)
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [modal])
-
     function stopSpring() {
       animatedNumber.stop()
       if (scrollBridge.onFinishAnimate) {
@@ -341,44 +344,6 @@ const SheetImplementation = themeable(
       }
     }, [setPosition, shouldSetPositionOpen])
 
-    const positions = useMemo(
-      () => snapPoints.map((point) => getPercentSize(point, frameSize)),
-      [frameSize, snapPoints]
-    )
-
-    const animateTo = useEvent((position: number) => {
-      const current = animatedNumber.getValue()
-      if (isHidden && open) return
-      if (!current) return
-      if (frameSize === 0) return
-      const hiddenValue = frameSize === 0 ? HIDDEN_SIZE : frameSize
-      const toValue = isHidden || position === -1 ? hiddenValue : positions[position]
-      if (at.current === toValue) return
-      stopSpring()
-      if (isHidden || isResizing) {
-        if (isResizing) {
-          setIsResizing(false)
-        }
-        animatedNumber.setValue(toValue, {
-          type: 'timing',
-          duration: 0,
-        })
-        at.current = toValue
-        return
-      }
-      // dont bounce on initial measure to bottom
-      const overshootClamping = at.current === HIDDEN_SIZE
-      animatedNumber.setValue(toValue, {
-        ...animationConfig,
-        type: 'spring',
-        overshootClamping,
-      })
-    })
-
-    useIsomorphicLayoutEffect(() => {
-      animateTo(position)
-    }, [isHidden, frameSize, position, animateTo])
-
     /**
      * This is a hacky workaround for native:
      */
@@ -388,115 +353,6 @@ const SheetImplementation = themeable(
     const onInnerSheet = useCallback((hasChild: boolean) => {
       setIsShowingInnerSheet(hasChild)
     }, [])
-
-    const panResponder = useMemo(
-      () => {
-        if (disableDrag) return
-        if (!frameSize) return
-        if (isShowingInnerSheet) return
-
-        const minY = positions[0]
-        scrollBridge.paneMinY = minY
-        let startY = at.current
-
-        function makeUnselectable(val: boolean) {
-          if (!selectionStyleSheet) return
-          if (!val) {
-            selectionStyleSheet.innerText = ``
-          } else {
-            selectionStyleSheet.innerText = `:root * { user-select: none !important; -webkit-user-select: none !important; }`
-          }
-        }
-
-        const release = ({ vy, dragAt }: { dragAt: number; vy: number }) => {
-          isExternalDrag = false
-          previouslyScrolling = false
-          makeUnselectable(false)
-          const at = dragAt + startY
-          // seems liky vy goes up to about 4 at the very most (+ is down, - is up)
-          // lets base our multiplier on the total layout height
-          const end = at + frameSize * vy * 0.2
-          let closestPoint = 0
-          let dist = Infinity
-          for (let i = 0; i < positions.length; i++) {
-            const position = positions[i]
-            const curDist = end > position ? end - position : position - end
-            if (curDist < dist) {
-              dist = curDist
-              closestPoint = i
-            }
-          }
-          // have to call both because state may not change but need to snap back
-          setPosition(closestPoint)
-          animateTo(closestPoint)
-        }
-
-        const finish = (_e: GestureResponderEvent, state: PanResponderGestureState) => {
-          release({
-            vy: state.vy,
-            dragAt: state.dy,
-          })
-        }
-
-        let previouslyScrolling = false
-
-        const onMoveShouldSet = (_e: GestureResponderEvent, { dy }: PanResponderGestureState) => {
-          const isScrolled = scrollBridge.y !== 0
-          const isDraggingUp = dy < 0
-          const isAtTop = scrollBridge.paneY <= scrollBridge.paneMinY
-          if (isScrolled) {
-            previouslyScrolling = true
-            return false
-          }
-          if (previouslyScrolling) {
-            previouslyScrolling = false
-            return true
-          }
-          // prevent drag once at top and pulling up
-          if (isAtTop) {
-            if (!isScrolled && isDraggingUp) {
-              return false
-            }
-          }
-          // we could do some detection of other touchables and cancel here..
-          return Math.abs(dy) > 5
-        }
-
-        const grant = () => {
-          makeUnselectable(true)
-          stopSpring()
-          startY = at.current
-        }
-
-        let isExternalDrag = false
-
-        scrollBridge.drag = (dy) => {
-          if (!isExternalDrag) {
-            isExternalDrag = true
-            grant()
-          }
-          const to = dy + startY
-          animatedNumber.setValue(resisted(to, minY), { type: 'direct' })
-        }
-
-        scrollBridge.release = release
-
-        return PanResponder.create({
-          onMoveShouldSetPanResponder: onMoveShouldSet,
-          onPanResponderGrant: grant,
-          onPanResponderMove: (_e, { dy }) => {
-            const toFull = dy + startY
-            const to = resisted(toFull, minY)
-            animatedNumber.setValue(to, { type: 'direct' })
-          },
-          onPanResponderEnd: finish,
-          onPanResponderTerminate: finish,
-          onPanResponderRelease: finish,
-        })
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [disableDrag, isShowingInnerSheet, animateTo, frameSize, positions, setPosition]
-    )
 
     let handleComponent: React.ReactElement | null = null
     let overlayComponent: React.ReactElement | null = null
@@ -523,16 +379,6 @@ const SheetImplementation = themeable(
       }
     })
 
-    const animatedStyle = driver.useAnimatedNumberStyle(animatedNumber, (val) => {
-      const translateY = frameSize === 0 ? HIDDEN_SIZE : val
-      return {
-        transform: [{ translateY }],
-      }
-    })
-
-    // temp until reanimated useAnimatedNumber fix
-    const AnimatedView = driver['NumberView'] ?? driver.View
-
     useIsomorphicLayoutEffect(() => {
       if (!parentSheetContext || !open) return
       parentSheetContext(true)
@@ -548,68 +394,70 @@ const SheetImplementation = themeable(
       [zIndex]
     )
 
-    const handleLayout = useCallback((e) => {
-      let next = e.nativeEvent?.layout.height
-      if (isWeb && isTouchable && !open) {
-        // temp fix ios bug where it doesn't go below dynamic bottom...
-        next += 100
-      }
-      if (!next) return
-      setFrameSize((prev) => {
-        const isBigChange = Math.abs(prev - next) > 20
-        setIsResizing(isBigChange)
-        return next
-      })
-    }, [])
+    const actionSheetRef = useRef<ActionSheetRef>(null)
+
+    useEffect(() => {
+      console.log('open', open)
+      actionSheetRef.current?.[open ? 'show' : 'hide']()
+    }, [open])
+
+    useEffect(() => {
+      actionSheetRef.current?.snapToIndex(position)
+    }, [position])
 
     const contents = (
       <ParentSheetContext.Provider value={nextParentContext}>
-        <SheetProvider
-          modal={modal}
-          contentRef={contentRef}
-          dismissOnOverlayPress={dismissOnOverlayPress}
-          dismissOnSnapToBottom={dismissOnSnapToBottom}
-          open={open}
-          hidden={isHidden}
-          scope={__scopeSheet}
-          position={position}
-          snapPoints={snapPoints}
-          setPosition={setPosition}
-          setOpen={setOpen}
-          scrollBridge={scrollBridge}
-        >
-          {isResizing || shouldHideParentSheet ? null : overlayComponent}
-
-          <AnimatedView
-            debug="verbose"
-            ref={ref}
-            {...panResponder?.panHandlers}
-            onLayout={handleLayout}
-            pointerEvents={open && !shouldHideParentSheet ? 'auto' : 'none'}
-            style={[
-              {
-                position: 'absolute',
-                zIndex,
-                width: '100%',
-                height: '100%',
-              },
-              animatedStyle,
-            ]}
+        <RNActionSheetProvider context={id}>
+          <SheetProvider
+            modal={modal}
+            contentRef={contentRef}
+            dismissOnOverlayPress={dismissOnOverlayPress}
+            dismissOnSnapToBottom={dismissOnSnapToBottom}
+            open={open}
+            hidden={isHidden}
+            scope={__scopeSheet}
+            position={position}
+            snapPoints={snapPoints}
+            setPosition={setPosition}
+            setOpen={setOpen}
+            scrollBridge={scrollBridge}
+            id={id}
           >
-            {handleComponent}
-
-            <RemoveScroll
-              enabled={open && modal && handleDisableScroll}
-              as={Slot}
-              allowPinchZoom
-              shards={[contentRef]}
-              // causes lots of bugs on touch web on site
-              removeScrollBar={false}
-            >
-              {isResizing ? null : frameComponent}
-            </RemoveScroll>
-          </AnimatedView>
-        </SheetProvider>
+            <Stack pointerEvents="auto">
+              <ActionSheet
+                // useBottomSafeAreaPadding
+                backgroundInteractionEnabled
+                // closable={false}
+                drawUnderStatusBar={true}
+                gestureEnabled={true}
+                CustomHeaderComponent={frameComponent}
+                containerStyle={{
+                  backgroundColor: 'red',
+                  shadowRadius: 0,
+                }}
+                isModal={modal}
+                onChange={(position, height) => {
+                  setPosition(position)
+                }}
+                onClose={() => {
+                  setOpen(false)
+                }}
+                onOpen={() => {
+                  setOpen(true)
+                }}
+                ref={actionSheetRef}
+                snapPoints={[60]}
+                // snapPoints={snapPoints}
+                // snapPoints={[90]}
+                // snapPoints={[25, 50, 75]}
+                id={id}
+              >
+                {/* {frameComponent} */}
+                <Text>test</Text>
+              </ActionSheet>
+            </Stack>
+          </SheetProvider>
+        </RNActionSheetProvider>
       </ParentSheetContext.Provider>
     )
 

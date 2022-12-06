@@ -20,6 +20,7 @@ import {
   Button,
   H1,
   Paragraph,
+  Sheet,
   TamaguiProvider,
   Text,
   Theme,
@@ -107,7 +108,8 @@ export const Sandbox = () => {
           {/* <SandboxExample /> */}
           {/* <SelectDemo /> */}
           {/* <PopoverDemo /> */}
-          <DialogDemo />
+          {/* <DialogDemo /> */}
+          <SheetDemo />
 
           {/* <PopoverDemo /> */}
           {/* <SheetDemo /> */}

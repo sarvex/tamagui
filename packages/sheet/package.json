@@ -30,7 +30,8 @@
     "@tamagui/scroll-view": "^1.0.1-rc.0",
     "@tamagui/stacks": "^1.0.1-rc.0",
     "@tamagui/use-constant": "^1.0.1-rc.0",
-    "@tamagui/use-controllable-state": "^1.0.1-rc.0"
+    "@tamagui/use-controllable-state": "^1.0.1-rc.0",
+    "react-native-actions-sheet": "^0.8.10"
   },
   "peerDependencies": {
     "react": ">=18",

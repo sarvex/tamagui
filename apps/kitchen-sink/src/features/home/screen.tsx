@@ -1,4 +1,5 @@
 import { variableToString } from '@tamagui/core'
+import { SheetDemo } from '@tamagui/demos'
 import { ScrollView } from 'react-native'
 import { ChevronRight, Moon, Sun } from 'sandbox-ui'
 import { UseLinkProps, useLink } from 'solito/link'
@@ -34,6 +35,8 @@ export function HomeScreen() {
         <YStack theme="yellow" bc="$background" p="$3" br="$4" bw={1} boc="$borderColor">
           <Paragraph>Welcome to the Tamagui Kitchen Sink!</Paragraph>
         </YStack>
+
+        <SheetDemo />
 
         {/* <Theme name="blue">
           <Input placeholder="Search..." />
