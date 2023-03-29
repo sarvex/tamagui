@@ -84,35 +84,10 @@ export const DocCodeBlock = forwardRef((props: any, ref) => {
             justifyContent="space-between"
             top={-70}
             r="$6"
-            l="$6"
             $gtMd={{
               r: '$7',
-              l: '$7',
             }}
           >
-            <XStack space="$2">
-              {animationDriverToggler && showAnimationDriverControl && (
-                <TooltipSimple
-                  label={`${animationDriverToggler.driverName} animation driver`}
-                >
-                  <XStack space="$2" ai="center">
-                    <Timer size={16} />
-                    <Switch
-                      size="$1"
-                      theme="Switch"
-                      checked={animationDriverToggler.driverName === 'react-native'}
-                      onCheckedChange={(val) =>
-                        animationDriverToggler.setDriverName(val ? 'react-native' : 'css')
-                      }
-                    >
-                      <Switch.Thumb />
-                    </Switch>
-                    <Waves size={16} />
-                  </XStack>
-                </TooltipSimple>
-              )}
-            </XStack>
-            <XStack space="$2">
               <Button
                 accessibilityLabel="Show or hide code"
                 size="$2"
@@ -128,7 +103,6 @@ export const DocCodeBlock = forwardRef((props: any, ref) => {
                   icon={Paintbrush}
                 />
               </TooltipSimple>
-            </XStack>
           </XStack>
         )}
 
