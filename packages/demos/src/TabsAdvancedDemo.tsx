@@ -4,7 +4,7 @@ import {
   H5,
   SizableText,
   Stack,
-  TabTriggerLayout,
+  TabLayout,
   Tabs,
   TabsTriggerProps,
   YStack,
@@ -12,18 +12,43 @@ import {
 } from 'tamagui'
 
 export const TabsAdvancedDemo = () => {
-  const [currentTab, setCurrentTab] = useState('tab1')
+  const [{ activeAt, currentTab, intentAt }, setTabState] = useState<{
+    /**
+     * current value of the tab
+     */
+    currentTab: string
+    /**
+     * Layout of the trigger user might intend to select (hovering / focusing)
+     */
+    intentAt: TabLayout | null
+    /**
+     * Layout of the trigger user selected
+     */
+    activeAt: TabLayout | null
+  }>({
+    currentTab: 'tab1',
+    activeAt: null,
+    intentAt: null,
+  })
 
-  // Layout of the trigger user might intend to select (hovering / focusing)
-  const [intentIndicator, setIntentIndicator] = useState<TabTriggerLayout | null>(null)
+  const prevActiveAt = useRef<TabLayout | null>(null)
 
-  // Layout of the trigger user selected
-  const [selectIndicator, setSelectIndicator] = useState<TabTriggerLayout | null>(null)
-  const prevSelectionIndicatorLayout = useRef<TabTriggerLayout | null>(null)
+  const handleUpdateIntentAt = (newSize: TabLayout | null) => {
+    setTabState({
+      currentTab,
+      activeAt,
+      intentAt: newSize,
+    })
+  }
 
-  const handleUpdateSelectionIndicator = (newSize: TabTriggerLayout | null) => {
-    prevSelectionIndicatorLayout.current = selectIndicator
-    setSelectIndicator(newSize)
+  const handleUpdateActiveAt = (newSize: TabLayout | null) => {
+    prevActiveAt.current = activeAt
+    setTabState({ currentTab, intentAt, activeAt: newSize })
+  }
+
+  const handleUpdateCurrentTab = (newTab: string) => {
+    prevActiveAt.current = activeAt
+    setTabState({ intentAt, activeAt, currentTab: newTab })
   }
 
   /**
@@ -32,14 +57,10 @@ export const TabsAdvancedDemo = () => {
    *  1: from right
    */
   const direction = (() => {
-    if (
-      !selectIndicator ||
-      !prevSelectionIndicatorLayout.current ||
-      selectIndicator.x === prevSelectionIndicatorLayout.current.x
-    ) {
+    if (!activeAt || !prevActiveAt.current || activeAt.x === prevActiveAt.current.x) {
       return 0
     }
-    return selectIndicator.x > prevSelectionIndicatorLayout.current.x ? -1 : 1
+    return activeAt.x > prevActiveAt.current.x ? -1 : 1
   })()
 
   const enterVariant =
@@ -49,16 +70,16 @@ export const TabsAdvancedDemo = () => {
 
   const handleOnInteraction: TabsTriggerProps['onInteraction'] = (type, layout) => {
     if (type === 'select') {
-      handleUpdateSelectionIndicator(layout)
+      handleUpdateActiveAt(layout)
     } else {
-      setIntentIndicator(layout)
+      handleUpdateIntentAt(layout)
     }
   }
 
   return (
     <Tabs
       value={currentTab}
-      onValueChange={setCurrentTab}
+      onValueChange={handleUpdateCurrentTab}
       orientation="horizontal"
       br="$4"
       size="$3"
@@ -75,22 +96,22 @@ export const TabsAdvancedDemo = () => {
           overflow="visible"
           pb="$1.5"
         >
-          {intentIndicator && (
+          {intentAt && (
             <TabsRovingIndicator
-              width={intentIndicator.width}
-              height={intentIndicator.height}
-              x={intentIndicator.x}
-              y={intentIndicator.y}
+              width={intentAt.width}
+              height={intentAt.height}
+              x={intentAt.x}
+              y={intentAt.y}
             />
           )}
 
-          {selectIndicator && (
+          {activeAt && (
             <TabsRovingIndicator
               theme="active"
               active
-              width={selectIndicator.width}
+              width={activeAt.width}
               height="$0.25"
-              x={selectIndicator.x}
+              x={activeAt.x}
               borderRadius={0}
               bottom={-3}
             />
