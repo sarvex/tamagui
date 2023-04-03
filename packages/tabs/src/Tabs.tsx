@@ -123,7 +123,11 @@ const TabsTriggerFrame = styled(ThemeableStack, {
   },
 })
 
-type TabTriggerLayout = LayoutRectangle
+type TabLayout = LayoutRectangle
+/**
+ * @deprecated use TabLayout instead
+ */
+type TabTriggerLayout = TabLayout
 type InteractionType = 'select' | 'focus' | 'hover'
 
 type TabsTriggerFrameProps = ThemeableStackProps
@@ -132,7 +136,7 @@ type TabsTriggerProps = TabsTriggerFrameProps & {
   value: string
 
   /** Used for making custom indicators when trigger interacted with */
-  onInteraction?: (type: InteractionType, layout: TabTriggerLayout | null) => void
+  onInteraction?: (type: InteractionType, layout: TabLayout | null) => void
 }
 
 const TabsTrigger = TabsTriggerFrame.extractable(
@@ -150,7 +154,7 @@ const TabsTrigger = TabsTriggerFrame.extractable(
       const triggerId = makeTriggerId(context.baseId, value)
       const contentId = makeContentId(context.baseId, value)
       const isSelected = value === context.value
-      const [layout, setLayout] = React.useState<TabTriggerLayout | null>(null)
+      const [layout, setLayout] = React.useState<TabLayout | null>(null)
       const triggerRef = React.useRef<HTMLButtonElement>(null)
       const groupItemProps = useGroupItem({ disabled })
 
@@ -433,7 +437,11 @@ export const Tabs = withStaticProperties(
   ),
   {
     List: TabsList,
+    /**
+     * @deprecated use `Tabs.Tab` instead
+     */
     Trigger: TabsTrigger,
+    Tab: TabsTrigger,
     Content: TabsContent,
   }
 )
@@ -455,5 +463,6 @@ export type {
   TabsListProps,
   TabsTriggerProps,
   TabsContentProps,
+  TabLayout,
   TabTriggerLayout,
 }
