@@ -47,7 +47,6 @@ export const TabsAdvancedDemo = () => {
   }
 
   const handleUpdateCurrentTab = (newTab: string) => {
-    prevActiveAt.current = activeAt
     setTabState({ intentAt, activeAt, currentTab: newTab })
   }
 
