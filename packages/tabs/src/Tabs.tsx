@@ -98,8 +98,8 @@ const TabsTriggerFrame = styled(ThemeableStack, {
         pointerEvents: 'none',
       },
     },
-    theme: {
-      Button: {
+    unstyled: {
+      false: {
         focusable: true,
         hoverTheme: true,
         pressTheme: true,
@@ -120,6 +120,9 @@ const TabsTriggerFrame = styled(ThemeableStack, {
         },
       },
     },
+  } as const,
+  defaultVariants: {
+    unstyled: false,
   },
 })
 
@@ -130,7 +133,7 @@ type TabLayout = LayoutRectangle
 type TabTriggerLayout = TabLayout
 type InteractionType = 'select' | 'focus' | 'hover'
 
-type TabsTriggerFrameProps = ThemeableStackProps
+type TabsTriggerFrameProps = GetProps<typeof TabsTriggerFrame>
 type TabsTriggerProps = TabsTriggerFrameProps & {
   /** The value for the tabs state to be changed to after activation of the trigger */
   value: string

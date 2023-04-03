@@ -116,13 +116,13 @@ export const TabsAdvancedDemo = () => {
             />
           )}
 
-          <Tabs.Tab value="tab1" onInteraction={handleOnInteraction}>
+          <Tabs.Tab unstyled value="tab1" onInteraction={handleOnInteraction}>
             <SizableText>Profile</SizableText>
           </Tabs.Tab>
-          <Tabs.Tab value="tab2" onInteraction={handleOnInteraction}>
+          <Tabs.Tab unstyled value="tab2" onInteraction={handleOnInteraction}>
             <SizableText>Connections</SizableText>
           </Tabs.Tab>
-          <Tabs.Tab value="tab3" onInteraction={handleOnInteraction}>
+          <Tabs.Tab unstyled value="tab3" onInteraction={handleOnInteraction}>
             <SizableText>Notifications</SizableText>
           </Tabs.Tab>
         </Tabs.List>

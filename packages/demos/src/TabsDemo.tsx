@@ -31,13 +31,13 @@ const HorizontalTabs = () => {
       br="$4"
     >
       <Tabs.List disablePassBorderRadius="bottom" aria-label="Manage your account">
-        <Tabs.Tab theme="Button" f={1} value="tab1">
+        <Tabs.Tab f={1} value="tab1">
           <SizableText fontFamily="$body">Profile</SizableText>
         </Tabs.Tab>
-        <Tabs.Tab theme="Button" f={1} value="tab2">
+        <Tabs.Tab f={1} value="tab2">
           <SizableText fontFamily="$body">Connections</SizableText>
         </Tabs.Tab>
-        <Tabs.Tab theme="Button" f={1} value="tab3">
+        <Tabs.Tab f={1} value="tab3">
           <SizableText fontFamily="$body">Notifications</SizableText>
         </Tabs.Tab>
       </Tabs.List>
@@ -67,13 +67,13 @@ const VerticalTabs = () => {
       br="$4"
     >
       <Tabs.List disablePassBorderRadius="end" aria-label="Manage your account">
-        <Tabs.Tab theme="Button" value="tab1">
+        <Tabs.Tab value="tab1">
           <SizableText>Profile</SizableText>
         </Tabs.Tab>
-        <Tabs.Tab theme="Button" value="tab2">
+        <Tabs.Tab value="tab2">
           <SizableText>Connections</SizableText>
         </Tabs.Tab>
-        <Tabs.Tab theme="Button" value="tab3">
+        <Tabs.Tab value="tab3">
           <SizableText>Notifications</SizableText>
         </Tabs.Tab>
       </Tabs.List>
