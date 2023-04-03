@@ -260,7 +260,6 @@ declare const TabsFrame: import("@tamagui/web").TamaguiComponent<(Omit<import("r
     readonly circular?: boolean | undefined;
     readonly elevate?: boolean | undefined;
     readonly bordered?: number | boolean | undefined;
-    /** The value for the tabs state to be changed to after activation of the trigger */
     readonly size?: SizeTokens | undefined;
 }>>) | (Omit<import("react-native").ViewProps, "display" | "children" | "onLayout" | keyof import("react-native").GestureResponderHandlers> & import("@tamagui/web").ExtendBaseStackProps & import("@tamagui/web").TamaguiComponentPropsBase & import("@tamagui/web").WithThemeValues<import("@tamagui/web").StackStylePropsBase> & import("@tamagui/web").WithShorthands<import("@tamagui/web").WithThemeValues<import("@tamagui/web").StackStylePropsBase>> & import("@tamagui/core/types/reactNativeTypes").RNViewProps & Omit<{
     readonly fullscreen?: boolean | undefined;
@@ -379,7 +378,6 @@ export declare const Tabs: React.ForwardRefExoticComponent<((Omit<import("react-
     readonly circular?: boolean | undefined;
     readonly elevate?: boolean | undefined;
     readonly bordered?: number | boolean | undefined;
-    /** The value for the tabs state to be changed to after activation of the trigger */
     readonly size?: SizeTokens | undefined;
 }>> & {
     /** The value for the selected tab, if controlled */

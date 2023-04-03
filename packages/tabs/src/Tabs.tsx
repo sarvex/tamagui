@@ -45,32 +45,34 @@ type TabsListProps = TabsListFrameProps & {
   loop?: boolean
 }
 
-const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
-  (props: ScopedProps<TabsListProps>, forwardedRef) => {
-    const { __scopeTabs, loop = true, children, ...listProps } = props
-    const context = useTabsContext(TAB_LIST_NAME, __scopeTabs)
-    const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs)
+const TabsList = TabsListFrame.extractable(
+  React.forwardRef<HTMLDivElement, TabsListProps>(
+    (props: ScopedProps<TabsListProps>, forwardedRef) => {
+      const { __scopeTabs, loop = true, children, ...listProps } = props
+      const context = useTabsContext(TAB_LIST_NAME, __scopeTabs)
+      const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs)
 
-    return (
-      <RovingFocusGroup
-        asChild
-        orientation={context.orientation}
-        dir={context.dir}
-        loop={loop}
-        {...rovingFocusGroupScope}
-      >
-        <TabsListFrame
-          role="tablist"
-          aria-orientation={context.orientation}
-          ref={forwardedRef}
-          axis={context.orientation}
-          {...listProps}
+      return (
+        <RovingFocusGroup
+          asChild
+          orientation={context.orientation}
+          dir={context.dir}
+          loop={loop}
+          {...rovingFocusGroupScope}
         >
-          {children}
-        </TabsListFrame>
-      </RovingFocusGroup>
-    )
-  }
+          <TabsListFrame
+            role="tablist"
+            aria-orientation={context.orientation}
+            ref={forwardedRef}
+            axis={context.orientation}
+            {...listProps}
+          >
+            {children}
+          </TabsListFrame>
+        </RovingFocusGroup>
+      )
+    }
+  )
 )
 
 TabsList.displayName = TAB_LIST_NAME
@@ -300,35 +302,37 @@ type TabsContentProps = TabsContentFrameProps & {
   forceMount?: true
 }
 
-const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
-  (props: ScopedProps<TabsContentProps>, forwardedRef) => {
-    const { __scopeTabs, value, forceMount, children, ...contentProps } = props
-    const context = useTabsContext(CONTENT_NAME, __scopeTabs)
-    const isSelected = value === context.value
-    const show = forceMount || isSelected
+const TabsContent = TabsContentFrame.extractable(
+  React.forwardRef<HTMLDivElement, TabsContentProps>(
+    (props: ScopedProps<TabsContentProps>, forwardedRef) => {
+      const { __scopeTabs, value, forceMount, children, ...contentProps } = props
+      const context = useTabsContext(CONTENT_NAME, __scopeTabs)
+      const isSelected = value === context.value
+      const show = forceMount || isSelected
 
-    const triggerId = makeTriggerId(context.baseId, value)
-    const contentId = makeContentId(context.baseId, value)
+      const triggerId = makeTriggerId(context.baseId, value)
+      const contentId = makeContentId(context.baseId, value)
 
-    if (!show) return null
-    return (
-      <TabsContentFrame
-        key={value}
-        data-state={isSelected ? 'active' : 'inactive'}
-        data-orientation={context.orientation}
-        role="tabpanel"
-        aria-labelledby={triggerId}
-        // @ts-ignore
-        hidden={!show}
-        id={contentId}
-        tabIndex={0}
-        {...contentProps}
-        ref={forwardedRef}
-      >
-        {children}
-      </TabsContentFrame>
-    )
-  }
+      if (!show) return null
+      return (
+        <TabsContentFrame
+          key={value}
+          data-state={isSelected ? 'active' : 'inactive'}
+          data-orientation={context.orientation}
+          role="tabpanel"
+          aria-labelledby={triggerId}
+          // @ts-ignore
+          hidden={!show}
+          id={contentId}
+          tabIndex={0}
+          {...contentProps}
+          ref={forwardedRef}
+        >
+          {children}
+        </TabsContentFrame>
+      )
+    }
+  )
 )
 
 TabsContent.displayName = CONTENT_NAME
