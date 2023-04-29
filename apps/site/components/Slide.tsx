@@ -18,12 +18,17 @@ import { DivProps, useHoverGlow } from './HoverGlow'
 export type SlideProps = {
   title?: React.ReactNode
   subTitle?: string
-  steps: TextContent[]
+  steps?: TextContent[]
   variant?: 1
   theme?: ThemeName
+  children?: any
 }
 
 type SlideStepItem =
+  | {
+      type: 'content'
+      content: any
+    }
   | {
       type: 'image'
       image: {
@@ -86,13 +91,13 @@ export function Slide(props: SlideProps) {
           )}
 
           {Boolean(props.subTitle) && (
-            <H2 size="$9" theme="alt2" als="center">
+            <H2 size="$10" ls={0} theme="alt2" als="center">
               {props.subTitle}
             </H2>
           )}
         </YStack>
 
-        {props.steps.map((step, index) => {
+        {props.steps?.map((step, index) => {
           return (
             <React.Fragment key={index}>
               <YStack f={1} space="$10">
@@ -105,6 +110,8 @@ export function Slide(props: SlideProps) {
             </React.Fragment>
           )
         })}
+
+        {props.children}
       </YStack>
     </Theme>
   )

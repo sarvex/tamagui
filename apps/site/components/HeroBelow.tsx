@@ -9,7 +9,7 @@ import { ContainerLarge } from './Container'
 import { useHeroHovered } from './heroState'
 import { IconStack } from './IconStack'
 
-const TitleLink = ({ href, children, ...props }: any) => {
+export const TitleLink = ({ href, children, ...props }: any) => {
   return (
     <NextLink href={href}>
       <H3 cursor="pointer" color="$color" my="$2">
@@ -25,7 +25,7 @@ const TitleLink = ({ href, children, ...props }: any) => {
           ls={0}
           {...props}
         >
-          {children} <ChevronRight size={12} />
+          {children} <ChevronRight size={14} />
         </CodeInline>
       </H3>
     </NextLink>

@@ -6,7 +6,7 @@ export default memo(() => {
   return (
     <Slide
       title="Why?"
-      subTitle="My app felt slow & my code was verbose"
+      subTitle="My app was slow & my code was verbose"
       theme="purple"
       steps={[
         [

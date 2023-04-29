@@ -17,31 +17,31 @@ import {
   YStack,
 } from 'tamagui'
 
-export function TooltipDemo() {
+export function TooltipDemos() {
   return (
     <TooltipGroup delay={{ open: 3000, close: 100 }}>
       <YStack space="$2" alignSelf="center">
         <XStack space="$2">
-          <Demo groupId="0" placement="top-end" Icon={Circle} />
-          <Demo groupId="1" placement="top" Icon={ChevronUp} />
-          <Demo groupId="2" placement="top-start" Icon={Circle} />
+          <TooltipDemo groupId="0" placement="top-end" Icon={Circle} />
+          <TooltipDemo groupId="1" placement="top" Icon={ChevronUp} />
+          <TooltipDemo groupId="2" placement="top-start" Icon={Circle} />
         </XStack>
         <XStack space="$2">
-          <Demo groupId="3" placement="left" Icon={ChevronLeft} />
+          <TooltipDemo groupId="3" placement="left" Icon={ChevronLeft} />
           <YStack flex={1} />
-          <Demo groupId="4" placement="right" Icon={ChevronRight} />
+          <TooltipDemo groupId="4" placement="right" Icon={ChevronRight} />
         </XStack>
         <XStack space="$2">
-          <Demo groupId="5" placement="bottom-end" Icon={Circle} />
-          <Demo groupId="6" placement="bottom" Icon={ChevronDown} />
-          <Demo groupId="7" placement="bottom-start" Icon={Circle} />
+          <TooltipDemo groupId="5" placement="bottom-end" Icon={Circle} />
+          <TooltipDemo groupId="6" placement="bottom" Icon={ChevronDown} />
+          <TooltipDemo groupId="7" placement="bottom-start" Icon={Circle} />
         </XStack>
       </YStack>
     </TooltipGroup>
   )
 }
 
-export function Demo({ Icon, ...props }: TooltipProps & { Icon?: any }) {
+export function TooltipDemo({ Icon, ...props }: TooltipProps & { Icon?: any }) {
   return (
     <Tooltip {...props}>
       <Tooltip.Trigger>
