@@ -6,7 +6,7 @@ import {
   isWeb,
   useIsomorphicLayoutEffect,
 } from '@tamagui/constants'
-import { stylePropsView, validPseudoKeys, validStyles } from '@tamagui/helpers'
+import { stylePropsView, validStyles } from '@tamagui/helpers'
 import React, {
   Children,
   Fragment,
@@ -15,27 +15,26 @@ import React, {
   memo,
   useCallback,
   useContext,
-  useEffect,
   useId,
   useRef,
 } from 'react'
 
-import { onConfiguredOnce } from './config.js'
-import { stackDefaultStyles } from './constants/constants.js'
-import { FontLanguageContext } from './contexts/FontLanguageContext.js'
-import { TextAncestorContext } from './contexts/TextAncestorContext.js'
-import { didGetVariableValue, setDidGetVariableValue } from './createVariable.js'
-import { extendStaticConfig, parseStaticConfig } from './helpers/extendStaticConfig.js'
-import { useSplitStyles } from './helpers/getSplitStyles.js'
-import { mergeProps } from './helpers/mergeProps.js'
-import { proxyThemeVariables } from './helpers/proxyThemeVariables.js'
-import { themeable } from './helpers/themeable.js'
-import { useShallowSetState } from './helpers/useShallowSetState.js'
-import { useAnimationDriver } from './hooks/useAnimationDriver.js'
-import { setMediaShouldUpdate, useMedia } from './hooks/useMedia.js'
-import { useServerRef, useServerState } from './hooks/useServerHooks.js'
-import { useThemeWithState } from './hooks/useTheme.js'
-import { hooks } from './setupHooks.js'
+import { getConfig, onConfiguredOnce } from './config'
+import { stackDefaultStyles } from './constants/constants'
+import { FontLanguageContext } from './contexts/FontLanguageContext'
+import { TextAncestorContext } from './contexts/TextAncestorContext'
+import { didGetVariableValue, setDidGetVariableValue } from './createVariable'
+import { extendStaticConfig, parseStaticConfig } from './helpers/extendStaticConfig'
+import { useSplitStyles } from './helpers/getSplitStyles'
+import { mergeProps } from './helpers/mergeProps'
+import { proxyThemeVariables } from './helpers/proxyThemeVariables'
+import { themeable } from './helpers/themeable'
+import { useShallowSetState } from './helpers/useShallowSetState'
+import { useAnimationDriver } from './hooks/useAnimationDriver'
+import { setMediaShouldUpdate, useMedia } from './hooks/useMedia'
+import { useServerRef, useServerState } from './hooks/useServerHooks'
+import { useThemeWithState } from './hooks/useTheme'
+import { hooks } from './setupHooks'
 import {
   DebugProp,
   SpaceDirection,
@@ -47,14 +46,13 @@ import {
   TamaguiComponent,
   TamaguiComponentEvents,
   TamaguiComponentState,
-  TamaguiConfig,
   TamaguiElement,
   TamaguiInternalConfig,
   UseAnimationHook,
   UseAnimationProps,
 } from './types'
-import { Slot } from './views/Slot.js'
-import { useThemedChildren } from './views/Theme.js'
+import { Slot } from './views/Slot'
+import { useThemedChildren } from './views/Theme'
 import { ThemeDebug } from './views/ThemeDebug'
 
 // let t
@@ -123,11 +121,12 @@ export function createComponent<
   Ref = TamaguiElement,
   BaseProps = never
 >(
-  configIn: Partial<StaticConfig> | StaticConfigParsed,
+  staticConfigIn: Partial<StaticConfig> | StaticConfigParsed,
   ParentComponent?: StylableComponent
 ) {
   const staticConfig = (() => {
-    const next = extendStaticConfig(configIn, ParentComponent)
+    const next = extendStaticConfig(staticConfigIn, ParentComponent)
+
     if ('parsed' in next) {
       return next
     } else {
@@ -138,7 +137,7 @@ export function createComponent<
   const { isHOC } = staticConfig
 
   const defaultComponentClassName = `is_${staticConfig.componentName}`
-  let tamaguiDefaultProps: any
+  let defaultProps: any
   let defaultTag: string | undefined
 
   // see onConfiguredOnce below which attaches a name then to this component
@@ -167,10 +166,29 @@ export function createComponent<
     // React inserts default props after your props for some reason...
     // order important so we do loops, you can't just spread because JS does weird things
     let props: any
-    if (tamaguiDefaultProps && !propsIn.asChild) {
-      props = mergeProps(tamaguiDefaultProps, propsIn)[0]
+    if (defaultProps && !propsIn.asChild) {
+      props = mergeProps(defaultProps, propsIn)[0]
     } else {
       props = propsIn
+    }
+
+    // set variants through context
+    let provided: Object | undefined
+    const { context } = staticConfig
+    if (context) {
+      const contextValue = useContext(context)
+      const { inverseShorthands } = getConfig()
+      for (const key in context.props) {
+        const propVal = props[key] || props[inverseShorthands[key]]
+        if (propVal == null) {
+          if (contextValue) {
+            props[key] = contextValue[key]
+          }
+        } else {
+          provided ||= {}
+          provided[key] = propVal
+        }
+      }
     }
 
     const debugProp = props['debug'] as DebugProp
@@ -296,7 +314,8 @@ export function createComponent<
     const noClassNames = shouldAvoidClasses || shouldForcePseudo
 
     // internal use only
-    const disableTheme = (props['data-disable-theme'] && !willBeAnimated) || isHOC
+    const disableThemeProp = props['data-disable-theme']
+    const disableTheme = (disableThemeProp && !willBeAnimated) || isHOC
 
     const themeStateProps = {
       name: props.theme,
@@ -342,6 +361,11 @@ export function createComponent<
           'background: yellow;'
         )
         if (!isServer) {
+          console.groupCollapsed(
+            `Info (collapsed): ${state.press || state.pressIn ? 'PRESSED ' : ''}${
+              state.hover ? 'HOVERED ' : ''
+            }${state.focus ? 'FOCUSED' : ' '}`
+          )
           // rome-ignore lint/nursery/noConsoleLog: <explanation>
           console.log({
             props,
@@ -351,6 +375,7 @@ export function createComponent<
             themeStateProps,
             themeState,
           })
+          console.groupEnd()
         }
       }
     }
@@ -778,10 +803,13 @@ export function createComponent<
 
     content = createElement(elementType, viewProps, content)
 
-    content = useThemedChildren(themeState, content, {
-      shallow: stateRef.current.themeShallow,
-      // passPropsToChildren: true,
-    })
+    // disable theme prop is deterministic so conditional hook ok here
+    content = disableThemeProp
+      ? content
+      : useThemedChildren(themeState, content, {
+          shallow: stateRef.current.themeShallow,
+          // passPropsToChildren: true,
+        })
 
     if (process.env.NODE_ENV === 'development') {
       if (props['debug'] === 'visualize') {
@@ -814,6 +842,11 @@ export function createComponent<
       }
     }
 
+    if (provided) {
+      const Provider = staticConfig.context!.Provider!
+      content = <Provider {...provided}>{content}</Provider>
+    }
+
     if (process.env.NODE_ENV === 'development') {
       if (debugProp) {
         const element = typeof elementType === 'string' ? elementType : 'Component'
@@ -827,7 +860,7 @@ export function createComponent<
         if (typeof window !== 'undefined') {
           // prettier-ignore
           // rome-ignore lint/nursery/noConsoleLog: <explanation>
-          console.log({ state, themeState, isAnimated, isAnimatedReactNativeWeb, tamaguiDefaultProps, viewProps, splitStyles, animationStyles, handlesPressEvents, isStringElement, classNamesIn: props.className?.split(' '), classNamesOut: viewProps.className?.split(' '), events, shouldAttach, styles, pseudos, content, shouldAvoidClasses, avoidClasses: avoidClassesWhileAnimating, animation: props.animation, style: splitStylesStyle, staticConfig, tamaguiConfig, shouldForcePseudo })
+          console.log({ state, themeState, isAnimated, isAnimatedReactNativeWeb, defaultProps, viewProps, splitStyles, animationStyles, handlesPressEvents, isStringElement, classNamesIn: props.className?.split(' '), classNamesOut: viewProps.className?.split(' '), events, shouldAttach, styles, pseudos, content, shouldAvoidClasses, avoidClasses: avoidClassesWhileAnimating, animation: props.animation, style: splitStylesStyle, staticConfig, tamaguiConfig, shouldForcePseudo })
         }
         console.groupEnd()
         console.groupEnd()
@@ -877,35 +910,18 @@ export function createComponent<
 
     const debug = defaultPropsIn['debug']
 
-    // remove all classNames
-    const [ourProps, ourClassNames] = mergeProps(defaultPropsIn)
-
-    if (ourProps.tag) {
-      defaultTag = ourProps.tag
+    if (defaultPropsIn.tag) {
+      defaultTag = defaultPropsIn.tag
     }
 
     const noClassNames = !staticConfig.acceptsClassName
-    const { name, variants, defaultVariants, ...restProps } = ourProps
+    const { name, variants, defaultVariants, ...restProps } = defaultPropsIn
 
-    // must preserve prop order
-    // leave out className because we handle that already with initialSplitStyles.classNames
-    // otherwise it confuses variant functions getting className props
-    const [defaults, defaultsClassnames] = mergeProps(
-      component.defaultProps as any,
-      restProps
-    )
+    defaultProps = restProps
 
-    // split - keep variables on props to be processed using theme values at runtime (native)
-    if (process.env.TAMAGUI_TARGET === 'native') {
-      for (const key in staticConfig.defaultProps) {
-        const val = staticConfig.defaultProps[key]
-        if (validPseudoKeys[key]) continue
-        defaults[key] = val
-      }
+    if (staticConfig.isText && !defaultProps.fontFamily && conf.defaultFont) {
+      defaultProps.fontFamily = `$${conf.defaultFont}`
     }
-
-    // set to global
-    tamaguiDefaultProps = defaults
 
     // add debug logs
     if (process.env.NODE_ENV === 'development' && debug) {
@@ -913,17 +929,9 @@ export function createComponent<
         // rome-ignore lint/nursery/noConsoleLog: <explanation>
         console.log(`🐛 [${staticConfig.componentName || 'Component'}]`, {
           staticConfig,
-          tamaguiDefaultProps,
-          defaults,
           defaultPropsIn,
-          defaultPropsKeyOrder: Object.keys(staticConfig.defaultProps),
-          defaultPropsInKeyOrder: Object.keys(defaultPropsIn).map((k) => [
-            k,
-            defaultPropsIn[k],
-          ]),
-          ourProps,
-          ourClassNames,
-          defaultsClassnames,
+          defaultProps,
+          defaultPropsKeyOrder: Object.keys(defaultProps),
           defaultTag,
           noClassNames,
         })
@@ -935,44 +943,41 @@ export function createComponent<
 
   let res: ComponentType = component as any
 
-  if (configIn.memo) {
+  if (staticConfigIn.memo) {
     res = memo(res) as any
   }
 
+  // is this necessary?
   res.staticConfig = {
     validStyles: staticConfig.validStyles || stylePropsView,
     ...staticConfig,
   }
 
-  function extendStyledConfig(Component: any, conf?: Partial<StaticConfig>) {
+  function extendStyledConfig() {
     return extendStaticConfig(
       {
-        Component: Component as any,
-        ...conf,
+        ...staticConfig,
         neverFlatten: true,
         isHOC: true,
-        defaultProps: mergeProps(Component['defaultProps'], conf?.defaultProps)[0],
       },
       res
     )
   }
 
-  function extractable(Component, conf?: Partial<StaticConfig>) {
-    const extendedConfig = extendStyledConfig(Component, conf)
-    Component.staticConfig = extendedConfig
+  function extractable(Component: any) {
+    Component.staticConfig = extendStyledConfig()
     Component.styleable = styleable
     return Component
   }
 
-  function styleable(Component: any, conf?: Partial<StaticConfig>) {
+  function styleable(Component: any) {
     const isForwardedRefAlready = Component.render?.length === 2
     const ComponentForwardedRef = isForwardedRefAlready
       ? (Component as any)
       : forwardRef(Component as any)
 
-    const extendedConfig = extendStyledConfig(Component, conf)
+    const extendedConfig = extendStyledConfig()
     const out = themeable(ComponentForwardedRef, extendedConfig) as any
-    extendedConfig.Component = out
     out.staticConfig = extendedConfig
     out.styleable = styleable
     return out

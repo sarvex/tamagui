@@ -4,7 +4,6 @@ import {
   Button,
   Dialog,
   Fieldset,
-  H2,
   Input,
   Label,
   Paragraph,
@@ -14,7 +13,7 @@ import {
   YStack,
 } from 'tamagui'
 
-import { SelectDemo } from './SelectDemo'
+import { SelectDemoItem } from './SelectDemo'
 
 export function DialogDemo() {
   return (
@@ -73,7 +72,7 @@ export function DialogDemo() {
                 <Paragraph>Food</Paragraph>
               </TooltipSimple>
             </Label>
-            <SelectDemo />
+            <SelectDemoItem />
           </Fieldset>
 
           <YStack alignItems="flex-end" marginTop="$2">
@@ -86,7 +85,14 @@ export function DialogDemo() {
 
           <Unspaced>
             <Dialog.Close asChild>
-              <Button position="absolute" top="$3" right="$3" size="$2" circular icon={X} />
+              <Button
+                position="absolute"
+                top="$3"
+                right="$3"
+                size="$2"
+                circular
+                icon={X}
+              />
             </Dialog.Close>
           </Unspaced>
         </Dialog.Content>

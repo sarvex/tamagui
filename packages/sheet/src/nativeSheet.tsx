@@ -1,8 +1,8 @@
+import { YStack } from '@tamagui/stacks'
 import { FunctionComponent, useEffect, useRef } from 'react'
 
 import { SheetProvider } from './SheetContext'
 import { SheetProps } from './types'
-import { useSheetChildren } from './useSheetChildren'
 import { useSheetOpenState } from './useSheetOpenState'
 import { useSheetProviderProps } from './useSheetProviderProps'
 
@@ -25,7 +25,6 @@ export function setupNativeSheet(platform: SheetNativePlatforms, Implementation:
       const providerProps = useSheetProviderProps(props, state)
       // const { position } = providerProps
       // const { positions } = useSheetSnapPoints(providerProps)
-      const { frameComponent } = useSheetChildren(props.children)
 
       const { open, setOpen } = state
       const ref = useRef<{
@@ -43,9 +42,25 @@ export function setupNativeSheet(platform: SheetNativePlatforms, Implementation:
       // }}
 
       return (
-        <Implementation ref={ref} onModalDismiss={() => setOpen(false)}>
-          <SheetProvider {...providerProps}>{frameComponent}</SheetProvider>
-        </Implementation>
+        <>
+          <SheetProvider {...providerProps} onlyShowFrame>
+            <Implementation ref={ref} onModalDismiss={() => setOpen(false)}>
+              {props.children}
+            </Implementation>
+
+            {/* for some reason select triggers wont show on native if this isn't inside the actual tree not inside implementation... */}
+            {/* so just hiding it here for now... not great... */}
+            <YStack
+              position="absolute"
+              opacity={0}
+              pointerEvents="none"
+              width={0}
+              height={0}
+            >
+              {props.children}
+            </YStack>
+          </SheetProvider>
+        </>
       )
     }
   }

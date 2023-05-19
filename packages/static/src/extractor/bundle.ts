@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'path'
 import esbuild from 'esbuild'
 import { pathExists, stat, writeFile } from 'fs-extra'
 
-import { resolveWebOrNativeSpecificEntry } from './loadTamagui.js'
+import { resolveWebOrNativeSpecificEntry } from './loadTamagui'
 
 /**
  * For internal loading of new files
@@ -39,6 +39,15 @@ function getESBuildConfig(
     jsxFactory: 'react',
     allowOverwrite: true,
     keepNames: true,
+    resolveExtensions: [
+      ...(process.env.TAMAGUI_TARGET === 'web'
+        ? ['.web.tsx', '.web.ts', '.web.jsx', '.web.js']
+        : ['.native.tsx', '.native.ts', '.native.jsx', '.native.js']),
+      '.tsx',
+      '.ts',
+      '.jsx',
+      '.js',
+    ],
     platform: 'node',
     tsconfig,
     loader: {

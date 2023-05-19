@@ -1,28 +1,29 @@
 import { isRSC, isWeb } from '@tamagui/constants'
 
-import { configListeners, setConfig } from './config.js'
-import { createVariables, tokensKeysOrdered } from './createVariables.js'
-import { getThemeCSSRules } from './helpers/getThemeCSSRules.js'
+import { configListeners, setConfig } from './config'
+import { createVariables } from './createVariables'
+import { getThemeCSSRules } from './helpers/getThemeCSSRules'
 import {
   getAllRules,
   listenForSheetChanges,
   scanAllSheets,
-} from './helpers/insertStyleRule.js'
+} from './helpers/insertStyleRule'
 import {
   registerCSSVariable,
   tokensValueToVariable,
   variableToCSS,
-} from './helpers/registerCSSVariable.js'
-import { ensureThemeVariable, proxyThemeToParents } from './helpers/themes.js'
-import { configureMedia } from './hooks/useMedia.js'
-import { parseFont, registerFontVariables } from './insertFont.js'
-import { Tamagui } from './Tamagui.js'
+} from './helpers/registerCSSVariable'
+import { ensureThemeVariable, proxyThemeToParents } from './helpers/themes'
+import { configureMedia } from './hooks/useMedia'
+import { parseFont, registerFontVariables } from './insertFont'
+import { Tamagui } from './Tamagui'
 import {
   CreateTamaguiProps,
+  GetCSS,
   InferTamaguiConfig,
   TamaguiInternalConfig,
   ThemeParsed,
-} from './types.js'
+} from './types'
 
 // config is re-run by the @tamagui/static, dont double validate
 const createdConfigs = new WeakMap<any, boolean>()
@@ -55,10 +56,17 @@ export function createTamagui<Conf extends CreateTamaguiProps>(
     })
   )
 
+  let fontSizeTokens: Set<string> | null = null
+
   const fontsParsed = (() => {
     const res = {} as typeof fontTokens
     for (const familyName in fontTokens) {
-      res[`$${familyName}`] = parseFont(fontTokens[familyName])
+      const font = fontTokens[familyName]
+      const fontParsed = parseFont(font)
+      res[`$${familyName}`] = fontParsed
+      if (!fontSizeTokens && fontParsed.size) {
+        fontSizeTokens = new Set(Object.keys(fontParsed.size))
+      }
     }
     return res!
   })()
@@ -195,12 +203,39 @@ export function createTamagui<Conf extends CreateTamaguiProps>(
   const tokensParsed: any = Object.fromEntries(
     Object.entries(configIn.tokens).map(([k, v]) => {
       const val = Object.fromEntries(Object.entries(v).map(([k, v]) => [`$${k}`, v]))
-      tokensKeysOrdered.set(val, tokensKeysOrdered.get(v))
       return [k, val]
     })
   )
 
   const shorthands = configIn.shorthands || {}
+
+  let lastCSSInsertedRulesIndex = -1
+
+  const getCSS: GetCSS = ({ separator = '\n', sinceLastCall, excludeThemes } = {}) => {
+    if (sinceLastCall && lastCSSInsertedRulesIndex >= 0) {
+      // after first run with sinceLastCall
+      const rules = getAllRules()
+      lastCSSInsertedRulesIndex = rules.length
+      return rules.slice(lastCSSInsertedRulesIndex).join(separator)
+    }
+
+    // set so next time getNewCSS will trigger only new rules
+    lastCSSInsertedRulesIndex = 0
+
+    // first run
+    return `._ovs-contain {overscroll-behavior:contain;}
+.t_unmounted .t_will-mount {opacity:0;visibility:hidden;}
+.is_Text .is_Text {display:inline-flex;}
+._dsp_contents {display:contents;}
+${themeConfig.cssRuleSets.join(separator)}
+${excludeThemes ? '' : themeConfig.getThemeRulesSets().join(separator)}
+${getAllRules().join(separator)}`
+  }
+
+  const getNewCSS: GetCSS = (opts) => getCSS({ ...opts, sinceLastCall: true })
+
+  // defaults to the first font to make life easier
+  const defaultFont = configIn.defaultFont || Object.keys(configIn.fonts)[0]
 
   const config: TamaguiInternalConfig = {
     onlyAllowShorthands: false,
@@ -220,16 +255,10 @@ export function createTamagui<Conf extends CreateTamaguiProps>(
     themeConfig,
     tokensParsed,
     parsed: true,
-    getCSS: (separator = '\n') => {
-      return `
-._ovs-contain {overscroll-behavior:contain;}
-.t_unmounted .t_will-mount {opacity:0;visibility:hidden;}
-.is_Text .is_Text {display:inline-flex;}
-._dsp_contents {display:contents;}
-${themeConfig.cssRuleSets.join(separator)}
-${themeConfig.getThemeRulesSets().join(separator)}
-${getAllRules().join(separator)}`
-    },
+    getNewCSS,
+    getCSS,
+    defaultFont,
+    fontSizeTokens: fontSizeTokens || new Set(),
     // const tokens = [...getToken(tokens.size[0])]
     // .spacer-sm + ._dsp_contents._dsp-sm-hidden { margin-left: -var(--${}) }
   }

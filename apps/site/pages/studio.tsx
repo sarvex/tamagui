@@ -1,4 +1,4 @@
-import { TitleAndMetaTags } from '@components/TitleAndMetaTags'
+import { NextSeo } from 'next-seo'
 import { ThemeTint } from '@tamagui/logo'
 import { Lock } from '@tamagui/lucide-icons'
 import { useThemeSetting } from '@tamagui/next-theme'
@@ -23,6 +23,8 @@ import {
   useComposedRefs,
 } from 'tamagui'
 
+import { LoadInter900 } from '../components/LoadFont'
+
 export default function StudioSplashPage() {
   const soonButton = (
     <Button
@@ -40,7 +42,11 @@ export default function StudioSplashPage() {
 
   return (
     <>
-      <TitleAndMetaTags title="Tamagui Studio" description="Tamagui Studio" />
+      <NextSeo title="Tamagui Studio" description="Tamagui Studio" />
+
+      <Head>
+        <LoadInter900 />
+      </Head>
 
       <YStack fullscreen className="bg-grid" />
 
@@ -94,7 +100,7 @@ const RibbonContainer = () => {
 
   return (
     <YStack
-      o={isLight ? 0.22 : 0.275}
+      o={isLight ? 0.26 : 0.3}
       pos="absolute"
       fullscreen
       scaleX="200%"
@@ -131,7 +137,7 @@ const lettersConf: LetterConf[] = [
         y: 0,
       },
       style: {
-        transition: `all ease-out 100ms`,
+        transition: `all ease-out 300ms`,
       },
     },
     underlayStyle: {
@@ -156,7 +162,7 @@ const lettersConf: LetterConf[] = [
         y: 0,
       },
       style: {
-        transition: `all ease-out 100ms`,
+        transition: `all ease-out 300ms`,
       },
     },
     underlayStyle: {
@@ -180,7 +186,7 @@ const lettersConf: LetterConf[] = [
         y: 0,
       },
       style: {
-        transition: `all ease-out 100ms`,
+        transition: `all ease-out 300ms`,
       },
     },
     underlayStyle: {
@@ -206,7 +212,7 @@ const lettersConf: LetterConf[] = [
         y: 0,
       },
       style: {
-        transition: `all ease-out 100ms`,
+        transition: `all ease-out 300ms`,
       },
     },
     underlayStyle: {
@@ -231,7 +237,7 @@ const lettersConf: LetterConf[] = [
         y: 0,
       },
       style: {
-        transition: `all ease-out 100ms`,
+        transition: `all ease-out 300ms`,
       },
     },
     underlayStyle: {
@@ -253,7 +259,7 @@ const lettersConf: LetterConf[] = [
         y: -30,
       },
       style: {
-        transition: `all ease-out 100ms`,
+        transition: `all ease-out 300ms`,
       },
     },
     underlayStyle: {
@@ -278,8 +284,11 @@ const Hero = memo(() => {
     strategy: 'blur',
     blurPct: 100,
     color: 'var(--color10)',
-    opacity: isLight ? 0.32 : 0.15,
+    opacity: isLight ? 0.4 : 0.285,
     background: 'transparent',
+    style: {
+      transition: `all ease-out 500ms`,
+    },
   })
 
   const glint = useHoverGlow({
@@ -295,6 +304,9 @@ const Hero = memo(() => {
     opacity: isLight ? 1 : 0.4,
     background: 'transparent',
     inverse: true,
+    style: {
+      transition: `all ease-out 500ms`,
+    },
   })
 
   const lettersContainerBounds = {
@@ -422,7 +434,8 @@ const Hero = memo(() => {
           $gtSm={{ scale: 0.7 }}
           $gtMd={{ scale: 0.9 }}
           $gtLg={{ scale: 1 }}
-          $sm={{ y: -100, scale: 0.4 }}
+          $sm={{ scale: 0.55 }}
+          $xs={{ scale: 0.4 }}
           pos="relative"
           ref={parentRef as any}
           {...lettersContainerBounds}
@@ -453,6 +466,7 @@ const Hero = memo(() => {
               size="$6"
               borderRadius="$10"
               elevation="$2"
+              className="glowing"
               hoverStyle={{
                 bg: '$color9',
                 elevation: '$10',
@@ -463,7 +477,7 @@ const Hero = memo(() => {
                 scale: 0.96,
               }}
             >
-              Early Access on April 30th
+              Sponsor for early access
             </Button>
           </NextLink>
         </YStack>

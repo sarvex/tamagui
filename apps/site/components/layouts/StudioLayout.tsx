@@ -1,9 +1,10 @@
-import { TitleAndMetaTags } from '@components/TitleAndMetaTags'
+import { StudioQueueCard } from '@components/StudioQueueCard'
 import { withSupabase } from '@lib/withSupabase'
-import { WhitelistNotice } from '@protected/studio/(loaded)/(sponsor-protected)/SponsorshipRequired'
+import { isLocal } from '@protected/studio/constants'
 import { Lock } from '@tamagui/lucide-icons'
 import { ButtonLink } from 'app/Link'
 import { UserGuard, useUser } from 'hooks/useUser'
+import { NextSeo } from 'next-seo'
 import dynamic from 'next/dynamic'
 import { H2, Paragraph, Spinner, YStack } from 'tamagui'
 
@@ -14,7 +15,7 @@ const StudioLayout = dynamic(() => import('@protected/studio/layout'), { ssr: fa
 export const getStudioLayout: GetLayout = (page, pageProps) => {
   return withSupabase(
     <StudioToastProvider>
-      <TitleAndMetaTags title="Studio — Tamagui" />
+      <NextSeo title="Studio — Tamagui" />
 
       <UserGuard>
         <StudioLayout>
@@ -24,7 +25,8 @@ export const getStudioLayout: GetLayout = (page, pageProps) => {
         </StudioLayout>
       </UserGuard>
     </StudioToastProvider>,
-    pageProps
+    pageProps,
+    true
   )
 }
 
@@ -44,39 +46,22 @@ const GithubConnectionGuard = ({ children }: { children: React.ReactNode }) => {
 }
 
 const SponsorshipGuard = ({ children }: { children: React.ReactNode }) => {
-  const { accessStatus } = useUser()
+  const { teams } = useUser()
 
-  if (!accessStatus) {
+  if (!teams.main) {
     return <Spinner />
   }
+  // if (accessStatus.isWhitelisted) {
+  //   return (
+  //     <>
+  //       <WhitelistNotice />
+  //       {children}
+  //     </>
+  //   )
+  // }
 
-  if (accessStatus.isWhitelisted) {
-    return (
-      <>
-        <WhitelistNotice />
-        {children}
-      </>
-    )
-  }
-
-  if (!accessStatus.isSponsor) {
-    return (
-      <ErrorScreen
-        title="Studio is only accessible for sponsors."
-        message="You are not a tamagui sponsor. Sponsor the project to access Studio."
-        action={{ url: 'https://github.com/sponsors/natew', text: 'Sponsor Tamagui' }}
-      />
-    )
-  }
-
-  if (!accessStatus.access.studio) {
-    return (
-      <ErrorScreen
-        title="Studio is only accessible for sponsors."
-        message=" You are a sponsor, but your tier doesn't include Studio access. Please get a tier that includes Studio."
-        action={{ url: 'https://github.com/sponsors/natew', text: 'Sponsor Tamagui' }}
-      />
-    )
+  if (!isLocal) {
+    return <StudioQueueCard teamId={teams?.main?.id} />
   }
 
   return <>{children}</>

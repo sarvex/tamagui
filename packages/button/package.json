@@ -1,6 +1,6 @@
 {
   "name": "@tamagui/button",
-  "version": "1.22.6",
+  "version": "1.28.1",
   "sideEffects": [
     "*.css"
   ],
@@ -24,22 +24,22 @@
     "./package.json": "./package.json",
     ".": {
       "types": "./types/index.d.ts",
-      "import": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     }
   },
   "dependencies": {
-    "@tamagui/font-size": "1.22.6",
-    "@tamagui/get-button-sized": "1.22.6",
-    "@tamagui/helpers-tamagui": "1.22.6",
-    "@tamagui/text": "1.22.6",
-    "@tamagui/web": "1.22.6"
+    "@tamagui/font-size": "1.28.1",
+    "@tamagui/get-button-sized": "1.28.1",
+    "@tamagui/helpers-tamagui": "1.28.1",
+    "@tamagui/text": "1.28.1",
+    "@tamagui/web": "1.28.1"
   },
   "peerDependencies": {
     "react": "*"
   },
   "devDependencies": {
-    "@tamagui/build": "1.22.6",
+    "@tamagui/build": "1.28.1",
     "react": "^18.2.0",
     "vitest": "^0.26.3"
   },

@@ -1,4 +1,4 @@
-export * from './setup'
+import './setup.js'
 
 export * from '@tamagui/adapt'
 export * from '@tamagui/alert-dialog'
@@ -142,6 +142,7 @@ export {
   createTheme,
   createTokens,
   createVariable,
+  createStyledContext,
   getConfig,
   getAnimationDriver,
   getMedia,
@@ -178,6 +179,7 @@ export {
   useSafeRef,
 } from '@tamagui/core'
 
+/** @deprecated LinearGradient has been moved to tamagui/linear-gradient as of 1.1 */
 export function LinearGradient(props: never) {
   if (process.env.NODE_ENV === 'development') {
     console.warn(`LinearGradient has been moved to tamagui/linear-gradient as of 1.1`)

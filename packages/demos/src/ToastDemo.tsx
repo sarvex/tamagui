@@ -1,7 +1,10 @@
 import { Toast, useToastController, useToastState } from '@tamagui/toast'
 import React from 'react'
-import { Button, SizableText, Switch, XStack, YStack } from 'tamagui'
+import { Button, Label, Switch, XStack, YStack } from 'tamagui'
 
+/**
+ *  IMPORTANT NOTE: if you're copy-pasting this demo into your code, make sure to add the ToastProvider and ToastViewport as well.
+ */
 export const ToastDemo = () => {
   const [native, setNative] = React.useState(false)
 
@@ -56,6 +59,8 @@ const ToastControl = ({ native }: { native: boolean }) => {
         Show
       </Button>
       <Button
+        id="wot"
+        nativeID="woot"
         onPress={() => {
           toast.hide()
         }}
@@ -75,9 +80,13 @@ const NativeOptions = ({
 }) => {
   return (
     <XStack space="$3">
-      <SizableText size="$1">Custom</SizableText>
-
+      <Label size="$1" onPress={() => setNative(false)}>
+        Custom
+      </Label>
       <Switch
+        debug="verbose"
+        id="native-toggle"
+        nativeID="native-toggle"
         theme="active"
         size="$1"
         checked={!!native}
@@ -95,7 +104,9 @@ const NativeOptions = ({
         />
       </Switch>
 
-      <SizableText size="$1">Native</SizableText>
+      <Label size="$1" onPress={() => setNative(true)}>
+        Native
+      </Label>
     </XStack>
   )
 }

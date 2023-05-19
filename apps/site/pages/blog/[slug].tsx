@@ -1,7 +1,8 @@
 import { getBlogLayout } from '@components/layouts/BlogLayout'
-import { TitleAndMetaTags } from '@components/TitleAndMetaTags'
 import { getAllFrontmatter, getMdxBySlug } from '@lib/mdx'
+import { getOgUrl } from '@lib/og'
 import { getMDXComponent } from 'mdx-bundler/client'
+import { NextSeo } from 'next-seo'
 import React from 'react'
 
 import { BlogPost, BlogSlugPage } from '../../components/BlogSlugPage'
@@ -13,9 +14,24 @@ export default function BlogSlug(props: BlogPost) {
 
   return (
     <TamaguiExamples.Provider value={props['examples']}>
-      <TitleAndMetaTags
+      <NextSeo
         {...props.frontmatter}
         title={`${props.frontmatter.title} — Tamagui`}
+        openGraph={{
+          images: [
+            {
+              url:
+                props.frontmatter.image ??
+                getOgUrl('default', {
+                  title: props.frontmatter.title,
+                  description: props.frontmatter.description ?? '',
+                  category: "Blog",
+                }),
+              width: 1200,
+              height: 630,
+            },
+          ],
+        }}
       />
       <BlogSlugPage Component={Component} {...props} />
     </TamaguiExamples.Provider>

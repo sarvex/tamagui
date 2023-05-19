@@ -15,7 +15,7 @@ export const docsRoutes = [
   {
     pages: [
       { title: 'Configuration', route: '/docs/core/configuration' },
-      { title: 'Stack + Text', route: '/docs/core/stack-and-text' },
+      { title: 'Stack & Text', route: '/docs/core/stack-and-text' },
       { title: 'styled', route: '/docs/core/styled' },
       { title: 'Variants', route: '/docs/core/variants' },
       { title: 'Props', route: '/docs/intro/props' },
@@ -158,6 +158,7 @@ export const docsRoutes = [
   {
     pages: [
       { title: 'Design Systems', route: '/docs/guides/design-systems' },
+      { title: 'How to Build a Button', route: '/docs/guides/how-to-build-a-button' },
       { title: 'Developing', route: '/docs/guides/developing' },
       { title: 'Next.js', route: '/docs/guides/next-js' },
       { title: 'Expo', route: '/docs/guides/expo' },

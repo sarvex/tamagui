@@ -1,8 +1,14 @@
-// debug
-import { AnimationsDemo, AnimationsPresenceDemo } from '@tamagui/demos'
+import {
+  AnimationsDemo,
+  AnimationsPresenceDemo,
+  ListItemDemo,
+  ThemeInverseDemo,
+} from '@tamagui/demos'
 import { TabsAdvancedDemo } from '@tamagui/demos'
-import { LogoWords, TamaguiLogo } from '@tamagui/logo'
-import { Square, Stack, YStack, styled } from 'tamagui'
+import { LogoWords, TamaguiLogo, ThemeTint } from '@tamagui/logo'
+import { ListItem, Square, Stack, Theme, YStack, styled } from 'tamagui'
+
+import { ThemeToggle } from '../components/ThemeToggle'
 
 const TabsRovingIndicator = styled(Stack, {
   position: 'absolute',
@@ -36,6 +42,24 @@ export default () => (
       flex: 1,
     }}
   >
-    <YStack w={1000}>{/* <TabsAdvancedDemo /> */}</YStack>
+    <ThemeDemo />
   </div>
 )
+
+const ThemeDemo = () => {
+  return (
+    <YStack ai="center" fullscreen jc="center">
+      <YStack scale={2} pos="absolute" t="$8" space>
+        <LogoWords animated />
+      </YStack>
+
+      <ThemeTint>
+        <ThemeInverseDemo />
+      </ThemeTint>
+
+      <YStack pos="absolute" t="$4" r="$4">
+        <ThemeToggle />
+      </YStack>
+    </YStack>
+  )
+}

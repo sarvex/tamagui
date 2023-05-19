@@ -1,8 +1,9 @@
+import { createGluspFont } from '@tamagui/font-glusp'
 import { createInterFont } from '@tamagui/font-inter'
+import { createMunroFont } from '@tamagui/font-munro'
 import { createSilkscreenFont } from '@tamagui/font-silkscreen'
 import { shorthands } from '@tamagui/shorthands'
 import { themes, tokens } from '@tamagui/themes'
-import { CreateTamaguiProps } from '@tamagui/web'
 
 import { animations } from './animations'
 import { createGenericFont } from './createGenericFont'
@@ -10,6 +11,8 @@ import { media, mediaQueryDefaultActive } from './media'
 
 export * from './animations'
 
+const gluspFont = createGluspFont()
+const munroFont = createMunroFont()
 const silkscreenFont = createSilkscreenFont()
 const headingFont = createInterFont(
   {
@@ -36,11 +39,12 @@ const headingFont = createInterFont(
       6: 1,
       7: 0,
       8: 0,
-      9: -1,
-      10: -1.5,
-      12: -2,
-      14: -3,
-      15: -4,
+      9: -0.5,
+      10: -0.75,
+      11: -1,
+      12: -1.25,
+      14: -1.75,
+      15: -3,
     },
     // for native
     face: {
@@ -96,6 +100,7 @@ const monoFont = createGenericFont(
 )
 
 export const config = {
+  defaultFont: 'body',
   shouldAddPrefersColorThemes: true,
   themeClassNameOnRoot: true,
   animations,
@@ -104,11 +109,12 @@ export const config = {
   shorthands,
   tokens,
   fonts: {
-    // noto: notoFont as any,
     heading: headingFont,
     body: bodyFont,
     mono: monoFont,
     silkscreen: silkscreenFont,
+    glusp: gluspFont,
+    munro: munroFont,
   },
 }
 

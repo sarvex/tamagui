@@ -1,8 +1,9 @@
 import { stylePropsAll } from '@tamagui/helpers'
 
-import { createComponent } from './createComponent.js'
-import { mergeVariants } from './helpers/extendStaticConfig.js'
-import { ReactNativeStaticConfigs } from './setupReactNative.js'
+import { createComponent } from './createComponent'
+import { StyledContext } from './helpers/createStyledContext'
+import { mergeVariants } from './helpers/extendStaticConfig'
+import { ReactNativeStaticConfigs } from './setupReactNative'
 import type {
   GetProps,
   GetVariantValues,
@@ -14,7 +15,7 @@ import type {
   TamaguiElement,
   VariantDefinitions,
   VariantSpreadFunction,
-} from './types.js'
+} from './types'
 
 type GetBaseProps<A extends StylableComponent> = A extends TamaguiComponent<
   any,
@@ -51,6 +52,7 @@ export function styled<
     name?: string
     variants?: Variants | undefined
     defaultVariants?: GetVariantAcceptedValues<Variants>
+    context?: StyledContext
     acceptsClassName?: boolean
   },
   staticExtractionOptions?: Partial<StaticConfig>
@@ -96,24 +98,22 @@ export function styled<
         name,
         defaultVariants,
         acceptsClassName: acceptsClassNameProp,
+        context,
         ...defaultProps
       } = options
 
-      // TODO why is this breaking native but fixing web
-      // if (process.env.TAMAGUI_TARGET === 'web') {
-      //   if (parentStaticConfig) {
-      //     defaultProps = {
-      //       ...parentStaticConfig.defaultProps,
-      //       ...defaultProps,
-      //       ...defaultVariants,
-      //     }
-      //   }
-      // }
+      if (parentStaticConfig) {
+        defaultProps = {
+          ...parentStaticConfig.defaultProps,
+          ...defaultProps,
+          ...defaultVariants,
+        }
+      }
 
       if (defaultVariants) {
         defaultProps = {
-          ...defaultVariants,
           ...defaultProps,
+          ...defaultVariants,
         }
       }
 
@@ -147,6 +147,7 @@ export function styled<
         isReactNative,
         isText,
         acceptsClassName,
+        context,
         ...nativeConf,
       }
 
@@ -236,7 +237,7 @@ export function styled<
 // sanity check more complex types:
 
 // import { Paragraph } from '../../text/src/Paragraph'
-// import { Text } from './views/Text.js'
+// import { Text } from './views/Text'
 // import { getFontSized } from '../../get-font-sized/src'
 // import { SizableText } from '../../text/src/SizableText'
 // const Text1 = styled(Text, {

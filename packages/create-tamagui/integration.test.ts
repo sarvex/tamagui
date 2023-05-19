@@ -44,7 +44,7 @@ test.beforeAll(async () => {
 
     cd(dir)
 
-    await $`node ${tamaguiBin} test-app`
+    await $`node ${tamaguiBin} test-app --template next-expo-solito`
 
     cd(`test-app`)
 
@@ -102,7 +102,7 @@ test(`Loads home screen that opens drawer`, async ({ page }) => {
 
   // open drawer (TODO make attr for better selector)
   await page.locator('.is_Button').nth(1).click()
-  await expect(page.locator('.is_Sheet:last-child')).toBeVisible()
+  await expect(page.locator('.is_Sheet').first()).toBeVisible()
 
   // TODO add label to inner close button
   // TODO add visual test for sheet opening

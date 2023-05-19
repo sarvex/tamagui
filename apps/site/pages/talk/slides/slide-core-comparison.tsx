@@ -5,8 +5,7 @@ import { memo } from 'react'
 export default memo(() => {
   return (
     <Slide
-      title="vs Tailwind"
-      subTitle="🌶️"
+      title="Tailwind?"
       theme="yellow"
       steps={[
         [
@@ -15,8 +14,12 @@ export default memo(() => {
             content: [
               {
                 type: 'vertical',
-                title: `Does`,
+                title: `Similar`,
                 content: [
+                  {
+                    type: 'space',
+                  },
+
                   {
                     type: 'bullet-point',
                     slim: true,
@@ -25,7 +28,7 @@ export default memo(() => {
                         type: 'text',
                         props: {
                           size: '$10',
-                          marginBottom: 40,
+                          marginBottom: 70,
                           display: 'inline-flex',
                         },
                         content: `Inline styles`,
@@ -40,7 +43,7 @@ export default memo(() => {
                         type: 'text',
                         props: {
                           size: '$10',
-                          marginBottom: 40,
+                          marginBottom: 70,
                           display: 'inline-flex',
                         },
                         content: `Shorthands`,
@@ -55,10 +58,10 @@ export default memo(() => {
                         type: 'text',
                         props: {
                           size: '$10',
-                          marginBottom: 40,
+                          marginBottom: 70,
                           display: 'inline-flex',
                         },
-                        content: `Build-time optimized`,
+                        content: `Minimal CSS`,
                       },
                     ],
                   },
@@ -70,25 +73,10 @@ export default memo(() => {
                         type: 'text',
                         props: {
                           size: '$10',
-                          marginBottom: 40,
+                          marginBottom: 70,
                           display: 'inline-flex',
                         },
-                        content: `RN + Web`,
-                      },
-                    ],
-                  },
-                  {
-                    type: 'bullet-point',
-                    slim: true,
-                    content: [
-                      {
-                        type: 'text',
-                        props: {
-                          size: '$10',
-                          marginBottom: 40,
-                          display: 'inline-flex',
-                        },
-                        content: `Performance`,
+                        content: `Native + Web`,
                       },
                     ],
                   },
@@ -97,23 +85,12 @@ export default memo(() => {
 
               {
                 type: 'vertical',
-                title: `Doesn't`,
+                title: `Different`,
                 content: [
                   {
-                    type: 'bullet-point',
-                    slim: true,
-                    content: [
-                      {
-                        type: 'text',
-                        props: {
-                          size: '$10',
-                          marginBottom: 40,
-                          display: 'inline-flex',
-                        },
-                        content: `Everything is typed`,
-                      },
-                    ],
+                    type: 'space',
                   },
+
                   {
                     type: 'bullet-point',
                     slim: true,
@@ -121,14 +98,15 @@ export default memo(() => {
                       {
                         type: 'text',
                         props: {
-                          size: '$10',
-                          marginBottom: 40,
+                          size: '$9',
+                          marginBottom: 20,
                           display: 'inline-flex',
                         },
-                        content: `Props merge properly`,
+                        content: <>Has extra bundle size ❌</>,
                       },
                     ],
                   },
+
                   {
                     type: 'bullet-point',
                     slim: true,
@@ -136,14 +114,79 @@ export default memo(() => {
                       {
                         type: 'text',
                         props: {
-                          size: '$10',
-                          marginBottom: 40,
+                          size: '$9',
+                          marginBottom: 20,
+                          display: 'inline-flex',
+                        },
+                        content: `... but compiler makes up`,
+                      },
+                    ],
+                  },
+
+                  {
+                    type: 'bullet-point',
+                    slim: true,
+                    content: [
+                      {
+                        type: 'text',
+                        props: {
+                          size: '$9',
+                          marginBottom: 20,
+                          display: 'inline-flex',
+                        },
+                        content: `Everything is typed w/o plugin`,
+                      },
+                    ],
+                  },
+
+                  {
+                    type: 'bullet-point',
+                    slim: true,
+                    content: [
+                      {
+                        type: 'text',
+                        props: {
+                          size: '$9',
+                          marginBottom: 20,
+                          display: 'inline-flex',
+                        },
+                        content: `Truly dynamic styles`,
+                      },
+                    ],
+                  },
+
+                  {
+                    type: 'bullet-point',
+                    slim: true,
+                    content: [
+                      {
+                        type: 'text',
+                        props: {
+                          size: '$9',
+                          marginBottom: 20,
+                          display: 'inline-flex',
+                        },
+                        content: `Properly merge props`,
+                      },
+                    ],
+                  },
+
+                  {
+                    type: 'bullet-point',
+                    slim: true,
+                    content: [
+                      {
+                        type: 'text',
+                        props: {
+                          size: '$9',
+                          marginBottom: 20,
                           display: 'inline-flex',
                         },
                         content: `De/re-structure styles`,
                       },
                     ],
                   },
+
                   {
                     type: 'bullet-point',
                     slim: true,
@@ -151,26 +194,11 @@ export default memo(() => {
                       {
                         type: 'text',
                         props: {
-                          size: '$10',
-                          marginBottom: 40,
+                          size: '$9',
+                          marginBottom: 20,
                           display: 'inline-flex',
                         },
-                        content: `No dark:red-300`,
-                      },
-                    ],
-                  },
-                  {
-                    type: 'bullet-point',
-                    slim: true,
-                    content: [
-                      {
-                        type: 'text',
-                        props: {
-                          size: '$10',
-                          marginBottom: 40,
-                          display: 'inline-flex',
-                        },
-                        content: `No editor plugin`,
+                        content: `Powerful themes`,
                       },
                     ],
                   },

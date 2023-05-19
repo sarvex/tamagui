@@ -2,13 +2,12 @@ import '@tamagui/core/reset.css'
 import '@tamagui/polyfill-dev'
 
 import * as Demos from '@tamagui/demos'
-import { SelectDemo, SheetDemo, SliderDemo, TooltipDemo } from '@tamagui/demos'
+import { SandboxHeading } from '@tamagui/sandbox-ui'
 import { ToastProvider } from '@tamagui/toast'
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, useState } from 'react'
 import {
   Button,
   Separator,
-  Square,
   TamaguiProvider,
   Theme,
   XStack,
@@ -16,6 +15,7 @@ import {
   getStylesAtomic,
 } from 'tamagui'
 
+import { CustomButtonDemo } from './CustomButton'
 import config from './tamagui.config'
 
 // useful for debugging why things render:
@@ -26,15 +26,13 @@ if (typeof require !== 'undefined') {
 }
 
 export const Sandbox = () => {
-  const componentName = new URLSearchParams(window.location.search).get('test')
-  const demoName = new URLSearchParams(window.location.search).get('demo')
-  const Component = componentName
-    ? // vite wants a .js ending here, but webpack doesn't :/
-      lazy(() => import(`./usecases/${componentName}`))
-    : demoName
-    ? Demos[`${demoName}Demo`]
+  const demoComponentName = new URLSearchParams(window.location.search).get('demo')
+  const useCaseComponentName = new URLSearchParams(window.location.search).get('test')
+  const Component = demoComponentName
+    ? Demos[demoComponentName]
+    : useCaseComponentName
+    ? require(`./usecases/${useCaseComponentName}`).default
     : SandboxInner
-
   return (
     <SandboxFrame>
       <Suspense fallback="Loading...">
@@ -45,11 +43,44 @@ export const Sandbox = () => {
 }
 
 const SandboxInner = () => {
-  return <SheetDemo />
-  // return <TooltipDemo />
-  // return <TestPerf />
-  // return <Square animation="bouncy" size={100} bc="red" />
+  return (
+    <SandboxHeading>
+      sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+    </SandboxHeading>
+  )
+  return <CustomButtonDemo />
 }
+
+// function TestAnimatePresence() {
+//   const [show, setShow] = useState(true)
+
+//   return (
+//     <>
+//       <Button onPress={() => setShow(!show)}>hide</Button>
+//       <AnimatePresence>
+//         {show && (
+//           <Square
+//             animation="quick"
+//             size={100}
+//             bc="red"
+//             y={0}
+//             o={1}
+//             hoverStyle={{
+//               y: -10,
+//             }}
+//             enterStyle={{
+//               y: -100,
+//             }}
+//             exitStyle={{
+//               y: 100,
+//               o: 0,
+//             }}
+//           />
+//         )}
+//       </AnimatePresence>
+//     </>
+//   )
+// }
 
 function TestPerf() {
   return <Button onPress={runTestPerf}>run</Button>
@@ -99,7 +130,13 @@ function runTestPerf() {
 }
 
 const SandboxFrame = (props: { children: any }) => {
-  const [theme, setTheme] = useState('light')
+  const [theme, setTheme] = useState(
+    new URLSearchParams(window.location.search).get('theme') === 'dark' ? 'dark' : 'light'
+  )
+  const [screenshot, setScreenshot] = useState(
+    new URLSearchParams(window.location.search).has('screenshot')
+  )
+  const showThemeSwitch = !screenshot
   const splitView = new URLSearchParams(window.location.search).get('splitView')
 
   return (
@@ -116,34 +153,43 @@ const SandboxFrame = (props: { children: any }) => {
           }}
         />
 
-        <XStack fullscreen>
-          <YStack ai="center" jc="center" f={1} h="100%" bg="$background">
-            {props.children}
-          </YStack>
+        <Theme name={screenshot ? 'blue' : undefined}>
+          <XStack fullscreen>
+            <YStack ai="center" jc="center" f={1} h="100%">
+              {props.children}
+            </YStack>
 
-          {splitView ? (
-            <>
-              <Separator vertical />
-              <Theme name="dark">
-                <YStack ai="center" jc="center" f={1} h="100%" bg="$background">
-                  {props.children}
-                </YStack>
-              </Theme>
-            </>
-          ) : null}
-        </XStack>
-
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 30,
-            left: 20,
-            fontSize: 30,
-          }}
-          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-        >
-          🌗
-        </div>
+            {splitView ? (
+              <>
+                <Separator vertical />
+                <Theme name="dark">
+                  <YStack
+                    ai="center"
+                    jc="center"
+                    f={1}
+                    h="100%"
+                    bg={screenshot ? 'transparent' : '$background'}
+                  >
+                    {props.children}
+                  </YStack>
+                </Theme>
+              </>
+            ) : null}
+          </XStack>
+        </Theme>
+        {showThemeSwitch && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 30,
+              left: 20,
+              fontSize: 30,
+            }}
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          >
+            🌗
+          </div>
+        )}
       </ToastProvider>
     </TamaguiProvider>
   )

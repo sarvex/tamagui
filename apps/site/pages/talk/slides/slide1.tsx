@@ -10,6 +10,7 @@ import {
   Separator,
   SizableText,
   Spacer,
+  Theme,
   XStack,
   YStack,
   useComposedRefs,
@@ -29,19 +30,23 @@ export default memo(() => {
     color: 'var(--color10)',
     opacity: isLight ? 0.22 : 0.3,
     background: 'transparent',
+    offset: {
+      x: -200,
+      y: 200,
+    },
   })
 
   const glint = useHoverGlow({
     resist: 90,
-    size: isLight ? 100 : 200,
+    size: 800,
     strategy: 'blur',
-    blurPct: isLight ? 10 : 10,
-    color: isLight ? '#fff' : '#000',
+    blurPct: 80,
+    color: 'var(--pink10)',
     offset: {
-      x: 200,
+      x: 400,
       y: -200,
     },
-    opacity: isLight ? 1 : 0.4,
+    opacity: 0.2,
     background: 'transparent',
     inverse: true,
   })
@@ -87,8 +92,8 @@ export default memo(() => {
         opacity: 1,
         ...glow,
         offset: {
-          x: glow.offset!.x! - 200,
-          y: glow.offset!.y! - 120,
+          x: glow.offset!.x! - 250,
+          y: glow.offset!.y! - 50,
         },
         style: {
           ...glow.style,
@@ -161,10 +166,9 @@ export default memo(() => {
           {
             type: 'content',
             content: (
-              <ThemeTint>
+              <Theme name="blue">
                 <YStack
                   als="center"
-                  pt={100}
                   pos="relative"
                   {...lettersContainerBounds}
                   minWidth={lettersContainerBounds.width}
@@ -193,7 +197,7 @@ export default memo(() => {
                   </YStack>
                 </YStack>
 
-                <Container ai="center">
+                <Container mt={-200} ai="center">
                   <Spacer size="$8" />
 
                   <XStack maw={790} space="$8" separator={<Separator vertical />}>
@@ -210,7 +214,7 @@ export default memo(() => {
                     </SizableText>
                   </XStack>
                 </Container>
-              </ThemeTint>
+              </Theme>
             ),
           },
         ],

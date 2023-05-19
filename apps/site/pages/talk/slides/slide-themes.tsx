@@ -1,7 +1,7 @@
 import { createCodeHighlighter } from '@lib/highlightCode'
 import { Slide } from 'components/Slide'
-import React from 'react'
 import { memo } from 'react'
+import { Paragraph, Square, Stack, Theme, styled } from 'tamagui'
 
 const highlightCode = createCodeHighlighter()
 
@@ -35,14 +35,43 @@ const outputSnippet = highlightCode(
   'tsx'
 )
 
-const snippetUsage = highlightCode(
+const inputSnippetSub = highlightCode(
   `
-import { Stack } from '@tamagui/core'
-  
-export default () => (
+const themes = {
+  light_red: {
+    background: 'white',
+    color: 'red',
+  },
+  dark_red: {
+    background: 'red',
+    color: 'white'
+  }
+}
+`,
+  'tsx'
+)
+
+const outputSnippetSub = highlightCode(
+  `.t_light_red {
+  --background: white;
+  --color: red;
+}
+
+.t_dark_red {
+  --background: red;
+  --color: white;
+}
+`,
+  'tsx'
+)
+
+const snippetUsage = highlightCode(
+  `export default () => (
   <Theme name="light">
-    <Stack background="$background">
-      Light Background
+    <Stack backgroundColor="$background">
+      <Text color="$color">
+        Hello world
+      </Text>
     </Stack>
   </Theme>
 )
@@ -50,20 +79,49 @@ export default () => (
   'tsx'
 )
 
-const snippetUsageComplex = highlightCode(
-  `
-import { Stack, Text } from '@tamagui/core'
-  
-export default () => (
+const snippetUsage2 = highlightCode(
+  `export default () => (
   <Theme name="light">
-    <Stack background="$background">
-      Light Background
-    </Stack>
+    <MyWidget />
+  </Theme>
+)
+
+const MyWidget = () => (
+  <Stack backgroundColor="$background">
+    <Text color="$color">
+      Hello world
+    </Text>
+  </Stack>
+)
+`,
+  'tsx'
+)
+
+const snippetUsage3 = highlightCode(
+  `export default () => (
+  <Theme name="dark">
+    <MyWidget />
+  </Theme>
+)
+
+const MyWidget = () => (
+  <Stack backgroundColor="$background">
+    <Text color="$color">
+      Hello world
+    </Text>
+  </Stack>
+)
+`,
+  'tsx'
+)
+
+const snippetUsageComplex = highlightCode(
+  `export default () => (
+  <Theme name="light">
+    <MyWidget />
 
     <Theme name="dark">
-      <Text color="$color">
-        Dark text
-      </Text>
+      <MyWidget />
     </Theme>
   </Theme>
 )
@@ -71,13 +129,72 @@ export default () => (
   'tsx'
 )
 
+const snippetUsageInverse = highlightCode(
+  `export default () => (
+  <Theme name="light">
+    <MyWidget />
+
+    <Theme inverse>
+      <MyWidget />
+    </Theme>
+  </Theme>
+)
+`,
+  'tsx'
+)
+
+const snippetUsageSub = highlightCode(
+  `export default () => (
+  <Theme name="light">
+    <Theme name="red">
+      <MyWidget />
+    </Theme>
+  </Theme>
+)
+`,
+  'tsx'
+)
+
+const snippetUsageInverseSub = highlightCode(
+  `export default () => (
+  <Theme name="light">
+    <Theme name="red">
+      <MyWidget />
+
+      {/* Now make it dark_red */}
+      <Theme inverse>
+        <MyWidget />
+      </Theme>
+    </Theme>
+  </Theme>
+)
+`,
+  'tsx'
+)
+
+const MyWidget = ({ text, stack }: any = {}) => (
+  <Square size={250} bc={stack || '$background'} ai="center" jc="center">
+    <Paragraph size="$8" color={text || '$color'}>
+      Hello world
+    </Paragraph>
+  </Square>
+)
+
+const Container = styled(Stack, {
+  miw: 400,
+  mih: 400,
+  ai: 'center',
+  jc: 'center',
+  space: true,
+})
+
 export default memo(() => {
   return (
     <Slide
       title="Themes"
-      subTitle="Generics for styling"
+      subTitle="@tamagui/core"
       stepsStrategy="replace"
-      theme="yellow"
+      theme="pink"
       steps={[
         [
           {
@@ -97,25 +214,23 @@ export default memo(() => {
 
         [
           {
-            type: 'code',
-            content: snippetUsage,
-          },
-
-          {
-            type: 'bullet-point',
+            type: 'split-horizontal',
             content: [
               {
-                type: 'text',
-                content: `No dark:color-300`,
+                type: 'code',
+                content: snippetUsage,
+              },
+              {
+                type: 'content',
+                content: (
+                  <Container>
+                    <Theme name="light">
+                      <MyWidget />
+                    </Theme>
+                  </Container>
+                ),
               },
             ],
-          },
-        ],
-
-        [
-          {
-            type: 'code',
-            content: snippetUsageComplex,
           },
         ],
 
@@ -124,55 +239,213 @@ export default memo(() => {
             type: 'split-horizontal',
             content: [
               {
-                type: 'vertical',
-                content: [
-                  {
-                    type: 'bullet-point',
-                    content: [
-                      {
-                        type: 'text',
-                        content: `Avoids re-rendering`,
-                      },
-                    ],
-                  },
-                  {
-                    type: 'bullet-point',
-                    content: [
-                      {
-                        type: 'text',
-                        content: `Invert or reset to parent`,
-                      },
-                    ],
-                  },
-                ],
+                type: 'code',
+                content: snippetUsage2,
               },
-
               {
-                type: 'vertical',
-                content: [
-                  {
-                    type: 'bullet-point',
-                    content: [
-                      {
-                        type: 'text',
-                        content: `No dark:color-300`,
-                      },
-                    ],
-                  },
-                  {
-                    type: 'bullet-point',
-                    content: [
-                      {
-                        type: 'text',
-                        content: `Improves code re-use`,
-                      },
-                    ],
-                  },
-                ],
+                type: 'content',
+                content: (
+                  <Container>
+                    <Theme name="light">
+                      <MyWidget />
+                    </Theme>
+                  </Container>
+                ),
               },
             ],
           },
         ],
+
+        [
+          {
+            type: 'split-horizontal',
+            content: [
+              {
+                type: 'code',
+                content: snippetUsage3,
+              },
+              {
+                type: 'content',
+                content: (
+                  <Container>
+                    <Theme name="dark">
+                      <MyWidget />
+                    </Theme>
+                  </Container>
+                ),
+              },
+            ],
+          },
+        ],
+
+        [
+          {
+            type: 'split-horizontal',
+            content: [
+              {
+                type: 'code',
+                content: snippetUsageComplex,
+              },
+              {
+                type: 'content',
+                content: (
+                  <Container>
+                    <Theme name="light">
+                      <MyWidget />
+                    </Theme>
+
+                    <Theme name="dark">
+                      <MyWidget />
+                    </Theme>
+                  </Container>
+                ),
+              },
+            ],
+          },
+        ],
+
+        [
+          {
+            type: 'split-horizontal',
+            content: [
+              {
+                type: 'code',
+                content: snippetUsageInverse,
+              },
+              {
+                type: 'content',
+                content: (
+                  <Container>
+                    <Theme name="light">
+                      <MyWidget />
+                    </Theme>
+
+                    <Theme name="dark">
+                      <MyWidget />
+                    </Theme>
+                  </Container>
+                ),
+              },
+            ],
+          },
+        ],
+
+        [
+          {
+            type: 'callout',
+            content: `Sub-themes`,
+          },
+        ],
+
+        [
+          {
+            type: 'split-horizontal',
+            content: [
+              {
+                type: 'code',
+                content: inputSnippetSub,
+              },
+              {
+                type: 'code',
+                content: outputSnippetSub,
+              },
+            ],
+          },
+        ],
+
+        [
+          {
+            type: 'split-horizontal',
+            content: [
+              {
+                type: 'code',
+                content: snippetUsageSub,
+              },
+              {
+                type: 'content',
+                content: (
+                  <Container>
+                    <MyWidget text="red" stack="white" />
+                  </Container>
+                ),
+              },
+            ],
+          },
+        ],
+
+        [
+          {
+            type: 'split-horizontal',
+            content: [
+              {
+                type: 'code',
+                content: snippetUsageInverseSub,
+              },
+              {
+                type: 'content',
+                content: (
+                  <Container>
+                    <MyWidget text="red" stack="white" />
+                    <MyWidget text="white" stack="red" />
+                  </Container>
+                ),
+              },
+            ],
+          },
+        ],
+
+        // [
+        //   {
+        //     type: 'image',
+        //     variant: 'centered',
+        //     fullscreen: true,
+        //     image: require('../images/themes-5.png').default,
+        //   },
+
+        //   {
+        //     type: 'text-overlay',
+        //     variant: 'good',
+        //     content: `dark_green_outlined`,
+        //   },
+        // ],
+
+        // [
+        //   {
+        //     type: 'content',
+        //     content: (
+        //       <YStack
+        //         my={-100}
+        //         als="center"
+        //         mx="auto"
+        //         ai="center"
+        //         br="$4"
+        //         ov="hidden"
+        //         elevation="$5"
+        //       >
+        //         <video autoPlay loop style={{ width: 800, height: 800 }}>
+        //           <source src="/talk/themes-demo.mp4" />
+        //         </video>
+        //       </YStack>
+        //     ),
+        //   },
+        // ],
+
+        // [
+        //   {
+        //     type: 'fullscreen',
+        //     content: (
+        //       <iframe
+        //         width="100%"
+        //         height="100%"
+        //         src="https://www.youtube.com/embed/FqFLwud5l7g"
+        //         title="beatgig-demo"
+        //         frameBorder={0}
+        //         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        //         allowFullScreen
+        //       />
+        //     ),
+        //   },
+        // ],
       ]}
     />
   )

@@ -196,8 +196,8 @@ const [lightColorThemes, darkColorThemes] = [colorTokens.light, colorTokens.dark
         const colorPalette = Object.values(colorSet[color]) as string[]
         // were re-ordering these
         const [head, tail] = [
-          colorPalette.slice(0, 4),
-          colorPalette.slice(colorPalette.length - 7),
+          colorPalette.slice(0, 6),
+          colorPalette.slice(colorPalette.length - 5),
         ]
         // add our transparent colors first/last
         // and make sure the last (foreground) color is white/black rather than colorful
@@ -299,8 +299,7 @@ function getAltThemes({
 }
 
 function getComponentThemes(theme: SubTheme, inverse: SubTheme, isLight: boolean) {
-  const weaker1 = applyMask(theme, masks.weaker, maskOptions)
-  const weaker2 = applyMask(weaker1, masks.weaker, {
+  const componentMaskOptions: MaskOptions = {
     ...maskOptions,
     override: overrideWithColors,
     skip: {
@@ -308,10 +307,16 @@ function getComponentThemes(theme: SubTheme, inverse: SubTheme, isLight: boolean
       // skip colors too just for component sub themes
       ...templateColors,
     },
+  }
+  const weaker1 = applyMask(theme, masks.weaker, componentMaskOptions)
+  const base = applyMask(weaker1, masks.stronger, componentMaskOptions)
+  const weaker2 = applyMask(weaker1, masks.weaker, {
+    ...componentMaskOptions,
+    override: overrideWithColors,
   })
-  const stronger1 = applyMask(theme, masks.stronger, maskOptions)
-  const inverse1 = applyMask(inverse, masks.weaker, maskOptions)
-  const inverse2 = applyMask(inverse1, masks.weaker, maskOptions)
+  const stronger1 = applyMask(theme, masks.stronger, componentMaskOptions)
+  const inverse1 = applyMask(inverse, masks.weaker, componentMaskOptions)
+  const inverse2 = applyMask(inverse1, masks.weaker, componentMaskOptions)
   const strongerBorderLighterBackground: SubTheme = isLight
     ? {
         ...stronger1,
@@ -321,7 +326,7 @@ function getComponentThemes(theme: SubTheme, inverse: SubTheme, isLight: boolean
         borderColorFocus: weaker1.borderColorFocus,
       }
     : {
-        ...applyMask(theme, masks.skip, maskOptions),
+        ...applyMask(theme, masks.skip, componentMaskOptions),
         borderColor: weaker1.borderColor,
         borderColorHover: weaker1.borderColorHover,
         borderColorPress: weaker1.borderColorPress,
@@ -332,10 +337,16 @@ function getComponentThemes(theme: SubTheme, inverse: SubTheme, isLight: boolean
     background: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.9)',
   } as SubTheme
 
+  const weaker2WithoutBorder = {
+    ...weaker2,
+    borderColor: 'transparent',
+    borderColorHover: 'transparent',
+  }
+
   return {
-    ListItem: stronger1,
+    ListItem: isLight ? stronger1 : base,
     Card: weaker1,
-    Button: weaker2,
+    Button: weaker2WithoutBorder,
     Checkbox: weaker2,
     DrawerFrame: weaker1,
     SliderTrack: stronger1,

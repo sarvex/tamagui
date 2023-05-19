@@ -8,26 +8,17 @@ import type {
 
 export const getFontSized: VariantSpreadFunction<TextProps, FontSizeTokens> = (
   sizeTokenIn = '$true',
-  { fonts, props }
+  { font, props }
 ) => {
-  const family = getVariableValue(props.fontFamily) || '$body'
-  const font = fonts[family] || fonts['$body']
   if (!font) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ no font found', {
-        family,
-        fontTokens: Object.keys(fonts),
-        sizeTokenIn,
-      })
-    }
-    return {} as any
+    return
   }
   const fontFamily = font.family
   const sizeToken = sizeTokenIn === '$true' ? getDefaultSizeToken(font) : sizeTokenIn
   const fontSize = props.fontSize || font.size[sizeToken]
-  const lineHeight = props.lineHeight || font.lineHeight[sizeToken]
-  const fontWeight = props.fontWeight || font.weight[sizeToken]
-  const letterSpacing = props.letterSpacing || font.letterSpacing[sizeToken]
+  const lineHeight = props.lineHeight || font.lineHeight?.[sizeToken]
+  const fontWeight = props.fontWeight || font.weight?.[sizeToken]
+  const letterSpacing = props.letterSpacing || font.letterSpacing?.[sizeToken]
   const fontStyle = props.fontStyle || font.style?.[sizeToken]
   const textTransform = props.textTransform || font.transform?.[sizeToken]
   const color = props.color || font.color?.[sizeToken]

@@ -10,11 +10,11 @@ import {
   useIsomorphicLayoutEffect,
   withStaticProperties,
 } from '@tamagui/core'
-import { getSpace } from '@tamagui/helpers-tamagui'
+import { getSpace } from '@tamagui/get-token'
 import { ListItem, ListItemProps } from '@tamagui/list-item'
 import { PortalHost } from '@tamagui/portal'
 import { Separator } from '@tamagui/separator'
-import { ControlledSheet, SheetController } from '@tamagui/sheet'
+import { Sheet, SheetController } from '@tamagui/sheet'
 import { ThemeableStack, XStack, YStack } from '@tamagui/stacks'
 import { Paragraph, SizableText } from '@tamagui/text'
 import { useControllableState } from '@tamagui/use-controllable-state'
@@ -42,21 +42,17 @@ export type SelectTriggerProps = ListItemProps
 
 export const SelectTrigger = React.forwardRef<TamaguiElement, SelectTriggerProps>(
   (props: ScopedProps<SelectTriggerProps>, forwardedRef) => {
-    const {
-      __scopeSelect,
-      disabled = false,
-      // @ts-ignore
-      'aria-labelledby': ariaLabelledby,
-      ...triggerProps
-    } = props
+    const { __scopeSelect, disabled = false, ...triggerProps } = props
 
     const context = useSelectContext(TRIGGER_NAME, __scopeSelect)
     // const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange)
     // const getItems = useCollection(__scopeSelect)
     // const labelId = useLabelContext(context.trigger)
-    const labelledBy = ariaLabelledby // || labelId
+    // const labelledBy = ariaLabelledby || labelId
 
-    if (context.shouldRenderWebNative) return null
+    if (context.shouldRenderWebNative) {
+      return null
+    }
 
     return (
       <ListItem
@@ -72,7 +68,6 @@ export const SelectTrigger = React.forwardRef<TamaguiElement, SelectTriggerProps
         // aria-controls={context.contentId}
         aria-expanded={context.open}
         aria-autocomplete="none"
-        aria-labelledby={labelledBy}
         dir={context.dir}
         disabled={disabled}
         data-disabled={disabled ? '' : undefined}
@@ -119,17 +114,11 @@ const SelectValue = SelectValueFrame.extractable(
     ) => {
       // We ignore `className` and `style` as this part shouldn't be styled.
       const context = useSelectContext(VALUE_NAME, __scopeSelect)
-      const { onValueNodeHasChildrenChange } = context
       const composedRefs = useComposedRefs(forwardedRef, context.onValueNodeChange)
 
       const children = childrenProp ?? context.selectedItem
-      const hasChildren = !!children
       const isEmptyValue = context.value == null || context.value === ''
       const selectValueChildren = isEmptyValue ? placeholder ?? children : children
-
-      useIsomorphicLayoutEffect(() => {
-        onValueNodeHasChildrenChange(hasChildren)
-      }, [onValueNodeHasChildrenChange, hasChildren])
 
       return (
         <SelectValueFrame
@@ -219,7 +208,7 @@ export const SelectItem = React.forwardRef<TamaguiElement, SelectItemProps>(
       }
     })
 
-    React.useEffect(() => {
+    useIsomorphicLayoutEffect(() => {
       setValueAtIndex(index, value)
     }, [index, setValueAtIndex, value])
 
@@ -321,7 +310,19 @@ const ITEM_TEXT_NAME = 'SelectItemText'
 
 export const SelectItemTextFrame = styled(SizableText, {
   name: ITEM_TEXT_NAME,
-  userSelect: 'none',
+
+  variants: {
+    unstyled: {
+      false: {
+        userSelect: 'none',
+        color: '$color',
+      },
+    },
+  } as const,
+
+  defaultVariants: {
+    unstyled: false,
+  },
 })
 
 type SelectItemTextProps = GetProps<typeof SelectItemTextFrame>
@@ -453,7 +454,9 @@ const NativeSelectFrame = styled(ThemeableStack, {
           minHeight: tokens.size[val],
           paddingRight: paddingHorizontal + 20,
           paddingLeft: paddingHorizontal,
-          paddingVertical: getSpace(val, -2),
+          paddingVertical: getSpace(val, {
+            shift: -2,
+          }),
         }
       },
     },
@@ -644,7 +647,6 @@ export const Select = withStaticProperties(
     const listContentRef = React.useRef<string[]>([])
     const [selectedIndex, setSelectedIndex] = React.useState(0)
     const [valueNode, setValueNode] = React.useState<HTMLElement | null>(null)
-    const [valueNodeHasChildren, setValueNodeHasChildren] = React.useState(false)
 
     useIsomorphicLayoutEffect(() => {
       selectedIndexRef.current = selectedIndex
@@ -669,8 +671,6 @@ export const Select = withStaticProperties(
           forceUpdate={forceUpdate}
           valueNode={valueNode}
           onValueNodeChange={setValueNode}
-          onValueNodeHasChildrenChange={setValueNodeHasChildren}
-          valueNodeHasChildren={valueNodeHasChildren}
           scopeKey={scopeKey}
           sheetBreakpoint={sheetBreakpoint}
           scope={__scopeSelect}
@@ -722,7 +722,7 @@ export const Select = withStaticProperties(
     Trigger: SelectTrigger,
     Value: SelectValue,
     Viewport: SelectViewport,
-    Sheet: ControlledSheet,
+    Sheet: Sheet.Controlled,
   }
 )
 

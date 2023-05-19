@@ -1,8 +1,8 @@
 import { isAndroid, isWeb } from '@tamagui/constants'
 
-import { getConfig } from '../config.js'
-import { isDevTools } from '../constants/isDevTools.js'
-import { Variable, getVariableValue, isVariable } from '../createVariable.js'
+import { getConfig } from '../config'
+import { isDevTools } from '../constants/isDevTools'
+import { Variable, getVariableValue, isVariable } from '../createVariable'
 import type {
   DebugProp,
   GenericVariantDefinitions,
@@ -11,13 +11,13 @@ import type {
   StaticConfigParsed,
   TamaguiInternalConfig,
   VariantSpreadFunction,
-} from '../types.js'
-import type { LanguageContextType } from '../views/FontLanguage.types.js'
-import { expandStyle } from './expandStyle.js'
-import { expandStyles } from './expandStyles.js'
-import { getFontsForLanguage, getVariantExtras } from './getVariantExtras.js'
-import { isObj } from './isObj.js'
-import { mergeProps } from './mergeProps.js'
+} from '../types'
+import type { LanguageContextType } from '../views/FontLanguage.types'
+import { expandStyle } from './expandStyle'
+import { expandStyles } from './expandStyles'
+import { getFontsForLanguage, getVariantExtras } from './getVariantExtras'
+import { isObj } from './isObj'
+import { mergeProps } from './mergeProps'
 
 export type ResolveVariableTypes =
   | 'auto'
@@ -56,12 +56,12 @@ export const createPropMapper = (staticConfig: StaticConfigParsed) => {
     const returnVariablesAs = state.resolveVariablesAs === 'value' ? 'value' : 'auto'
 
     // handled here because we need to resolve this off tokens, its the only one-off like this
-    const fontFamily =
+    let fontFamily =
       props[conf.inverseShorthands.fontFamily] ||
       props.fontFamily ||
       defaultProps.fontFamily ||
       propsIn.fontFamily ||
-      '$body'
+      `$${conf.defaultFont}`
 
     if (
       process.env.NODE_ENV === 'development' &&
@@ -173,7 +173,7 @@ const resolveVariants: StyleResolver = (
   if (!variantValue) {
     // variant at key exists, but no matching variant value, return nothing
     if (process.env.NODE_ENV === 'development') {
-      if (staticConfig.validStyles?.[key]) return
+      if (staticConfig.validStyles && key in staticConfig.validStyles) return
       // don't warn on missing boolean values, common to only one of true/false
       if (typeof value === 'boolean') return
       const name = staticConfig.componentName || '[UnnamedComponent]'
@@ -411,21 +411,16 @@ function getVariantDefinition(
   }
   const { tokensParsed } = conf
   for (const { name, spreadName } of tokenCats) {
-    if (variant[spreadName] && value in tokensParsed[name]) {
+    if (spreadName in variant && value in tokensParsed[name]) {
       return variant[spreadName]
     }
   }
-  let fn: any
-  const type = typeof value
-  if (type === 'number') {
-    fn = variant[':number']
-  } else if (type === 'string') {
-    fn = variant[':string']
-  } else if (value === true || value === false) {
-    fn = variant[':boolean']
+  const fontSizeVariant = variant['...fontSize']
+  if (fontSizeVariant && conf.fontSizeTokens.has(value)) {
+    return fontSizeVariant
   }
-  // fallback to catch all or size
-  return fn || variant['...'] || variant['...size']
+  // fallback to catch all | size
+  return variant[`:${typeof value}`] || variant['...'] || variant['...size']
 }
 
 const fontShorthand = {
@@ -438,33 +433,45 @@ const getToken = (
   value: string,
   conf: TamaguiInternalConfig,
   theme: any,
-  fontFamily: string | undefined = '$body',
+  fontFamily: string | undefined,
   languageContext?: LanguageContextType,
   resolveAs?: ResolveVariableTypes,
   debug?: DebugProp
 ) => {
   const tokensParsed = conf.tokensParsed
-  const fontsParsed = languageContext
-    ? getFontsForLanguage(conf.fontsParsed, languageContext)
-    : conf.fontsParsed
   let valOrVar: any
   let hasSet = false
   if (value in theme) {
+    if (process.env.NODE_ENV === 'development' && debug === 'verbose') {
+      // rome-ignore lint/nursery/noConsoleLog: <explanation>
+      console.log(`Getting theme value for ${key} from ${value} = ${theme[value].val}`)
+    }
     valOrVar = theme[value]
     hasSet = true
   } else {
     switch (key) {
-      case 'fontFamily':
+      case 'fontFamily': {
+        const fontsParsed = languageContext
+          ? getFontsForLanguage(conf.fontsParsed, languageContext)
+          : conf.fontsParsed
         valOrVar = fontsParsed[value]?.family || value
         hasSet = true
         break
+      }
       case 'fontSize':
       case 'lineHeight':
       case 'letterSpacing':
-      case 'fontWeight':
-        valOrVar = fontsParsed[fontFamily]?.[fontShorthand[key] || key]?.[value] || value
-        hasSet = true
+      case 'fontWeight': {
+        if (fontFamily) {
+          const fontsParsed = languageContext
+            ? getFontsForLanguage(conf.fontsParsed, languageContext)
+            : conf.fontsParsed
+          valOrVar =
+            fontsParsed[fontFamily]?.[fontShorthand[key] || key]?.[value] || value
+          hasSet = true
+        }
         break
+      }
     }
     for (const cat in tokenCategories) {
       if (key in tokenCategories[cat]) {
@@ -499,20 +506,10 @@ const getToken = (
 
   if (process.env.NODE_ENV === 'development') {
     if (value && value[0] === '$') {
-      console.warn(
-        `⚠️ You passed the value "${value}" to the style property "${key}", but there's no theme or token with the key "${value}". Using theme "${theme.name}".
-
-Set the debug prop to true to see more detailed debug information.`
-      )
-      if (debug) {
-        if (isDevTools) {
-          // rome-ignore lint/nursery/noConsoleLog: ok
-          console.log('Looked in:', { theme, tokensParsed, fontsParsed })
-        }
-      }
-      return null
+      return
     }
   }
+
   return value
 }
 

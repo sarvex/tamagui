@@ -1,9 +1,9 @@
 import { simpleHash } from '@tamagui/helpers'
 
-import { THEME_CLASSNAME_PREFIX } from '../constants/constants.js'
-import { Variable, variableToString } from '../createVariable.js'
-import type { CreateTamaguiProps, ThemeParsed } from '../types.js'
-import { tokensValueToVariable } from './registerCSSVariable.js'
+import { THEME_CLASSNAME_PREFIX } from '../constants/constants'
+import { Variable, variableToString } from '../createVariable'
+import type { CreateTamaguiProps, ThemeParsed } from '../types'
+import { tokensValueToVariable } from './registerCSSVariable'
 
 export function getThemeCSSRules({
   config,
@@ -118,9 +118,12 @@ export function getThemeCSSRules({
   cssRuleSets.push(css)
 
   if (config.shouldAddPrefersColorThemes) {
-    const bgString = variableToString(theme.background)
-    const fgString = variableToString(theme.color)
-    const bodyRules = `body{background:${bgString};color:${fgString};}`
+    const bgString = theme.background
+      ? `background:${variableToString(theme.background)};`
+      : ''
+    const fgString = theme.color ? `color:${variableToString(theme.color)}` : ''
+
+    const bodyRules = `body{${bgString}${fgString}}`
     const isDark = themeName.startsWith('dark')
     const baseName = isDark ? 'dark' : 'light'
     const lessSpecificSelectors = selectors

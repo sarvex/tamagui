@@ -1,6 +1,6 @@
 {
   "name": "@tamagui/core-node",
-  "version": "1.22.6",
+  "version": "1.28.1",
   "main": "./src/index.js",
   "types": "./types/static.d.ts",
   "files": [
@@ -18,9 +18,9 @@
     ]
   },
   "dependencies": {
-    "@babel/runtime": "^7.19.4",
-    "@tamagui/core": "1.22.6",
-    "@tamagui/helpers": "1.22.6"
+    "@babel/runtime": "^7.21.5",
+    "@tamagui/core": "1.28.1",
+    "@tamagui/helpers": "1.28.1"
   },
   "devDependencies": {
     "@types/node": "^16.11.9",

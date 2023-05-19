@@ -2,12 +2,15 @@ import { Container } from '@components/Container'
 import { GithubIcon } from '@components/GithubIcon'
 import { getUserLayout } from '@components/layouts/UserLayout'
 import { Notice } from '@components/Notice'
-import { TitleAndMetaTags } from '@components/TitleAndMetaTags'
+import { StudioQueueCard } from '@components/StudioQueueCard'
+import { getDefaultAvatarImage } from '@lib/avatar'
+import { Database } from '@lib/supabase-types'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Provider } from '@supabase/supabase-js'
-import { Check, CheckCircle, LogOut, Star } from '@tamagui/lucide-icons'
+import { CheckCircle, LogOut, Star } from '@tamagui/lucide-icons'
 import { ButtonLink } from 'app/Link'
 import { useUser } from 'hooks/useUser'
+import { NextSeo } from 'next-seo'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
@@ -19,27 +22,22 @@ import {
   Separator,
   SizableText,
   Spinner,
-  Tabs,
-  Theme,
   XStack,
   YStack,
 } from 'tamagui'
-import { UserAccessStatus } from 'types'
 
 export default function Page() {
   return (
     <>
-      <TitleAndMetaTags
-        title="Account — Tamagui"
-        description="A better universal UI system."
-      />
+      <NextSeo title="Account — Tamagui" description="A better universal UI system." />
 
       <Account />
     </>
   )
 }
+
 const Account = () => {
-  const { isLoading, userDetails, accessStatus, signout } = useUser()
+  const { isLoading, userDetails, user, teams } = useUser()
 
   if (isLoading) {
     return <Spinner my="$10" />
@@ -47,9 +45,15 @@ const Account = () => {
 
   return (
     <Container f={1}>
-      <XStack my="$10" space>
+      <XStack mt="$10" space>
         <Avatar circular size="$10">
-          <Avatar.Image source={userDetails?.avatar_url} />
+          <Avatar.Image
+            source={{
+              uri:
+                userDetails?.avatar_url ??
+                getDefaultAvatarImage(userDetails?.full_name ?? user?.email ?? 'User'),
+            }}
+          />
         </Avatar>
 
         <YStack space="$3" ai="flex-start" jc="center" f={1}>
@@ -65,11 +69,16 @@ const Account = () => {
               </H3>
             </YStack>
           </XStack>
-          <XStack space="$2">
-            {accessStatus?.githubStatus.personal?.isSponsoring && <SponsorBadge />}
-            {accessStatus?.githubStatus.orgs.map((org) => (
-              <TeamBadge key={org.id} org={org} />
-            ))}
+          <YStack space="$2">
+            {teams.personal?.is_active && <SponsorBadge />}
+            {teams.orgs
+              ?.filter((team) => team.is_active)
+              .map((org) => (
+                <TeamBadge key={org.id} org={org} />
+              ))}
+          </YStack>
+          <XStack>
+            <ProfileContent />
           </XStack>
         </YStack>
       </XStack>
@@ -92,20 +101,20 @@ const SponsorBadge = () => {
 const TeamBadge = ({
   org,
 }: {
-  org: UserAccessStatus['githubStatus']['orgs'][number]
+  org: Pick<Database['public']['Tables']['teams']['Row'], 'name'>
 }) => {
   return (
     <Button
       theme="blue"
       disabled
-      icon={
-        <Avatar circular>
-          <Avatar.Image source={{ uri: org.avatarUrl }} />
-        </Avatar>
-      }
+      // icon={
+      //   <Avatar circular>
+      //     <Avatar.Image source={{ uri: org.avatarUrl }} />
+      //   </Avatar>
+      // }
       size="$2"
     >
-      {org.name} Team (Sponsor)
+      <Button.Text size="$2">{org.name} Team (Sponsor)</Button.Text>
     </Button>
   )
 }
@@ -115,9 +124,10 @@ const UserSettings = () => {
 
   return (
     <YStack space="$8" separator={<Separator />}>
-      <YStack space="$6" id="profile">
-        <SizableText size="$8">Profile</SizableText>
-        <ProfileContent />
+      <YStack space="$6" id="profile"></YStack>
+
+      <YStack space="$6" id="studio-queue">
+        <QueueContent />
       </YStack>
 
       <YStack space="$6" id="sponsorship-status">
@@ -150,40 +160,68 @@ const ProfileContent = () => {
   const { user, userDetails } = useUser()
 
   return (
-    <Table
-      data={{
-        Name: userDetails?.full_name,
-        Email: user?.email,
-        'Auth Provider': user?.app_metadata.provider,
-      }}
-    />
+    <XStack space="$4" separator={<Separator vertical />}>
+      <Paragraph theme="alt1">{userDetails?.full_name}</Paragraph>
+      <Paragraph theme="alt1">{user?.email}</Paragraph>
+    </XStack>
   )
 }
 
+const QueueContent = () => {
+  const { teams } = useUser()
+
+  // if (accessStatus.access.studio.access) {
+  //   return (
+  //     <YStack space ai="flex-start">
+  //       <SizableText>You have access to studio!</SizableText>
+  //       <ButtonLink themeInverse href={studioRootDir}>
+  //         Enter Studio
+  //       </ButtonLink>
+  //     </YStack>
+  //   )
+  // }
+
+  if (!teams.main) return null
+
+  return (
+    <YStack gap="$4">
+      <StudioQueueCard key={teams.main.id} teamId={teams.main.id} />
+    </YStack>
+  )
+
+  // return (
+  //   <YStack ai="flex-start" space>
+  //     <SizableText>
+  //       {accessStatus.access.studio.message} - You will get access{' '}
+  //       {Intl.DateTimeFormat('en-US', {
+  //         month: 'short',
+  //         year: 'numeric',
+  //         day: 'numeric',
+  //       }).format(new Date(accessStatus.access.studio.accessDate))}
+  //     </SizableText>
+  //     <SponsorButton />
+  //   </YStack>
+  // )
+}
+
 const SponsorshipContent = () => {
-  const { accessStatus } = useUser()
+  const { userDetails, teams } = useUser()
   // {/* TODO: get info of sponsorship here... tier, etc. */}
 
-  if (!accessStatus?.isSponsor) {
+  if (!teams.main?.is_active) {
     return (
       <YStack space="$4" ai="flex-start">
-        <ButtonLink
-          href="https://github.com/sponsors/natew"
-          theme="pink_alt1"
-          icon={<Star />}
-          size="$3"
-        >
-          Sponsor Tamagui
-        </ButtonLink>
-        <YStack>
-          <Paragraph>
-            You are not an sponsor. Become an sponsor to access exclusive features!
+        <SponsorButton />
+        <YStack space>
+          <Paragraph size="$6">
+            You are not an sponsor. Become an sponsor to get early access to the studio
+            and other upcoming features.
           </Paragraph>
-          <Paragraph color="$color11">
+          <Paragraph size="$5" theme="alt1">
             If you're a member of an organization that is sponsoring Tamagui, make sure
             tamagui has access to that org{' '}
             <Link
-              style={{ color: 'var(--color)' }}
+              style={{ color: 'var(--color12)' }}
               href={`https://github.com/settings/connections/applications/${process.env.NEXT_PUBLIC_GITHUB_AUTH_CLIENT_ID}`}
             >
               here
@@ -196,25 +234,41 @@ const SponsorshipContent = () => {
   }
 
   return (
-    <YStack>
-      {accessStatus.githubStatus.personal?.isSponsoring && (
-        <Paragraph>You are a personal sponsor.</Paragraph>
-      )}
-      {accessStatus.githubStatus.orgs.map((org) => (
-        <Paragraph key={org.id}>
-          You are a member of a sponsoring organization,{' '}
-          <Link
-            href={`https://github.com/${org.login}`}
-            target="_blank"
-            rel="noreferrer"
-            style={{ textDecoration: 'underline' }}
-          >
-            {org.name}
-          </Link>
-          .
-        </Paragraph>
-      ))}
+    <YStack gap="$4">
+      <YStack>
+        {teams.personal?.is_active && <Paragraph>You are a personal sponsor.</Paragraph>}
+        {teams.orgs?.map((org) => (
+          <Paragraph key={org.id}>
+            You are a member of a sponsoring organization, {org.name}.
+          </Paragraph>
+        ))}
+      </YStack>
+      <SyncSponsorshipButton />
     </YStack>
+  )
+}
+
+const SyncSponsorshipButton = () => {
+  const [loading, setLoading] = useState(false)
+  const syncWithGithub = async () => {
+    setLoading(true)
+    await fetch('/api/sponsorship-sync', { method: 'POST' })
+      .then(() => {
+        location.reload()
+      })
+      .finally(() => setLoading(false))
+  }
+  return (
+    <Button
+      theme="dark"
+      size="$3"
+      disabled={loading}
+      onPress={syncWithGithub}
+      iconAfter={loading ? <Spinner /> : null}
+      {...(loading ? { opacity: 0.5 } : {})}
+    >
+      Sync With GitHub Sponsors
+    </Button>
   )
 }
 
@@ -258,8 +312,9 @@ const ConnectionsContent = () => {
       <Table
         data={{
           GitHub: (
-            <Theme name="dark">
+            <XStack gap="$2">
               <Button
+                theme="dark"
                 disabled={loading}
                 onPress={() => handleOAuthSignIn('github')}
                 size="$3"
@@ -270,7 +325,9 @@ const ConnectionsContent = () => {
                   ? 'Connected'
                   : 'Connect GitHub'}
               </Button>
-            </Theme>
+
+              <SyncSponsorshipButton />
+            </XStack>
           ),
         }}
       />
@@ -296,6 +353,19 @@ const Table = ({ data }: { data: Record<string, any> }) => {
         </XStack>
       ))}
     </YStack>
+  )
+}
+
+const SponsorButton = () => {
+  return (
+    <ButtonLink
+      href="https://github.com/sponsors/natew"
+      theme="pink_alt1"
+      icon={<Star />}
+      size="$3"
+    >
+      Sponsor Tamagui
+    </ButtonLink>
   )
 }
 

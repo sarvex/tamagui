@@ -69,26 +69,3 @@ export interface Subscription {
   trial_end?: string
   prices?: Price
 }
-
-export type UserAccessStatus = {
-  isWhitelisted: boolean
-  isSponsor: boolean
-  access: {
-    studio: boolean
-  }
-  githubStatus: {
-    orgs: {
-      isSponsoring: boolean
-      tierIncludesStudio: boolean
-
-      id: string
-      login: string
-      avatarUrl: string
-      name: string
-    }[]
-    personal?: {
-      isSponsoring: boolean
-      tierIncludesStudio: boolean
-    }
-  }
-}

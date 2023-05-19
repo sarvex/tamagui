@@ -1,7 +1,7 @@
 import { Scope, createContextScope } from '@tamagui/create-context'
 import { registerFocusable } from '@tamagui/focusable'
 import { getFontSize } from '@tamagui/font-size'
-import { stepTokenUpOrDown } from '@tamagui/get-size'
+import { getSize, stepTokenUpOrDown } from '@tamagui/get-token'
 import { Group, GroupProps, useGroupItem } from '@tamagui/group'
 import { useGetThemedIcon } from '@tamagui/helpers-tamagui'
 import { RovingFocusGroup, createRovingFocusGroupScope } from '@tamagui/roving-focus'
@@ -75,9 +75,12 @@ const ToggleGroupItem = ToggleFrame.extractable(
         height: undefined,
         padding: getVariableValue(size) * 0.6,
       }
-      if (props.orientation === 'horizontal')
+
+      if (props.orientation === 'horizontal') {
         sizeProps.height = getVariableValue(size) * 2.4
-      else sizeProps.width = getVariableValue(size) * 2.4
+      } else {
+        sizeProps.width = getVariableValue(size) * 2.4
+      }
 
       const iconSize = (typeof size === 'number' ? size * 0.7 : getFontSize(size)) * 1.2
 
@@ -428,7 +431,9 @@ const ToggleGroupImpl = ToggleGroupImplElementFrame.extractable(
         ...toggleGroupProps,
       }
       const adjustedSize = getVariableValue(
-        stepTokenUpOrDown('size', props.size, sizeAdjust)
+        getSize(props.size, {
+          shift: sizeAdjust,
+        })
       )
       const size = Math.round(adjustedSize * 0.45)
 

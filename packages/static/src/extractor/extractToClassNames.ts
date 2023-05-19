@@ -8,17 +8,17 @@ import { getStylesAtomic } from '@tamagui/core-node'
 import { concatClassName } from '@tamagui/helpers'
 import type { ViewStyle } from 'react-native'
 
-import type { ClassNameObject, StyleObject, TamaguiOptions, Ternary } from '../types.js'
-import { babelParse } from './babelParse.js'
-import { buildClassName } from './buildClassName.js'
-import { Extractor } from './createExtractor.js'
-import { ensureImportingConcat } from './ensureImportingConcat.js'
-import { isSimpleSpread } from './extractHelpers.js'
-import { extractMediaStyle } from './extractMediaStyle.js'
-import { getPrefixLogs } from './getPrefixLogs.js'
-import { hoistClassNames } from './hoistClassNames.js'
-import { logLines } from './logLines.js'
-import { timer } from './timer.js'
+import type { ClassNameObject, StyleObject, TamaguiOptions, Ternary } from '../types'
+import { babelParse } from './babelParse'
+import { buildClassName } from './buildClassName'
+import { Extractor } from './createExtractor'
+import { ensureImportingConcat } from './ensureImportingConcat'
+import { isSimpleSpread } from './extractHelpers'
+import { extractMediaStyle } from './extractMediaStyle'
+import { getPrefixLogs } from './getPrefixLogs'
+import { hoistClassNames } from './hoistClassNames'
+import { logLines } from './logLines'
+import { timer } from './timer'
 
 const mergeStyleGroups = {
   shadowOpacity: true,
@@ -71,7 +71,10 @@ export async function extractToClassNames({
 
   const shouldLogTiming = options.logTimings ?? true
   const start = Date.now()
-  const mem = shouldLogTiming ? process.memoryUsage() : null
+  const mem =
+    process.env.TAMAGUI_SHOW_MEMORY_USAGE && shouldLogTiming
+      ? process.memoryUsage()
+      : null
 
   // Using a map for (officially supported) guaranteed insertion order
   let ast: t.File
@@ -119,6 +122,7 @@ export async function extractToClassNames({
       lineNumbers,
       programPath,
       isFlattened,
+      config,
       completeProps,
       staticConfig,
     }) => {
@@ -337,7 +341,7 @@ export async function extractToClassNames({
           }
 
           if (staticConfig.isText) {
-            let family = completeProps.fontFamily
+            let family = completeProps.fontFamily || config.defaultFont || 'body'
             if (family[0] === '$') {
               family = family.slice(1)
             }
@@ -454,7 +458,7 @@ export async function extractToClassNames({
     const numOptimized = `${res.optimized}`.padStart(3)
     const numFound = `${res.found}`.padStart(3)
     const numFlattened = `${res.flattened}`.padStart(3)
-    const memory = process.env.DEBUG && memUsed > 10 ? ` ${memUsed}MB` : ''
+    const memory = ` ${memUsed}MB`
     const timing = Date.now() - start
     const timingStr = `${timing}ms`.padStart(6)
     const pre = getPrefixLogs(options)

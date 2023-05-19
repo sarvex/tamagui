@@ -9,10 +9,10 @@ import type { StaticConfigParsed, TamaguiInternalConfig } from '@tamagui/web'
 import esbuild from 'esbuild'
 import { ensureDir, removeSync, writeFileSync } from 'fs-extra'
 
-import { registerRequire } from '../require.js'
-import { TamaguiOptions } from '../types.js'
-import { babelParse } from './babelParse.js'
-import { bundle } from './bundle.js'
+import { registerRequire } from '../require'
+import { TamaguiOptions } from '../types'
+import { babelParse } from './babelParse'
+import { bundle } from './bundle'
 
 let loggedOutputInfo = false
 
@@ -161,7 +161,7 @@ export async function bundleConfig(props: TamaguiOptions) {
     try {
       out = require(configOutPath)
     } catch (err) {
-      // rome-ignore lint/nursery/noUselessCatch: <explanation>
+      // rome-ignore lint/complexity/noUselessCatch: <explanation>
       throw err
     } finally {
       unregister()
