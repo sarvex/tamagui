@@ -27,7 +27,7 @@
   "devDependencies": {
     "@tamagui/build": "1.29.1",
     "prettyjson": "^1.2.5",
-    "webpack": "^5.83.1"
+    "webpack": "^5.76.0"
   },
   "publishConfig": {
     "access": "public"
